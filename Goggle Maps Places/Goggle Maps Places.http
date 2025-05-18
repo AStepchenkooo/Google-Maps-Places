@@ -1,0 +1,6 @@
+@Goggle_Maps_Places_HostAddress = http://localhost:5200
+
+GET {{Goggle_Maps_Places_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

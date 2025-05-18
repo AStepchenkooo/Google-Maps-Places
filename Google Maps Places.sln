@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google Maps Places", "Goggle Maps Places\Google Maps Places.csproj", "{D4DEB08F-542D-4458-A9D0-5E9A553F3C39}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google Maps Places Bot", "Google Maps Places Bot\Google Maps Places Bot.csproj", "{E1714B52-5238-4A1D-ADB4-1B03215D5583}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D4DEB08F-542D-4458-A9D0-5E9A553F3C39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4DEB08F-542D-4458-A9D0-5E9A553F3C39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4DEB08F-542D-4458-A9D0-5E9A553F3C39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4DEB08F-542D-4458-A9D0-5E9A553F3C39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1714B52-5238-4A1D-ADB4-1B03215D5583}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1714B52-5238-4A1D-ADB4-1B03215D5583}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1714B52-5238-4A1D-ADB4-1B03215D5583}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1714B52-5238-4A1D-ADB4-1B03215D5583}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D336F230-4462-4FD6-804C-4EC1AC755E94}
+	EndGlobalSection
+EndGlobal
