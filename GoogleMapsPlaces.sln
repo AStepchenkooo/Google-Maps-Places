@@ -5,7 +5,7 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleMapsPlacesBot", "GoogleMapsPlacesBot\GoogleMapsPlacesBot.csproj", "{1D0CACF7-2984-E198-B3DC-837D028096F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleMapsPlaces", "GoggleMapsPlaces\GoogleMapsPlaces.csproj", "{2796D380-4449-31D7-6DD9-84B0B39B8D8F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleMapsPlacesAPI", "GoogleMapsPlacesAPI\GoogleMapsPlacesAPI.csproj", "{BDE10701-B036-43C3-2029-563E1410823C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{1D0CACF7-2984-E198-B3DC-837D028096F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D0CACF7-2984-E198-B3DC-837D028096F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D0CACF7-2984-E198-B3DC-837D028096F4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2796D380-4449-31D7-6DD9-84B0B39B8D8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2796D380-4449-31D7-6DD9-84B0B39B8D8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2796D380-4449-31D7-6DD9-84B0B39B8D8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2796D380-4449-31D7-6DD9-84B0B39B8D8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDE10701-B036-43C3-2029-563E1410823C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDE10701-B036-43C3-2029-563E1410823C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDE10701-B036-43C3-2029-563E1410823C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDE10701-B036-43C3-2029-563E1410823C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
