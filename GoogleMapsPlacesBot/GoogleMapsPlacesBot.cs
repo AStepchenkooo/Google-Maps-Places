@@ -4,9 +4,6 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using GoggleMapsPlaces.Clients;
-using GoggleMapsPlaces.Models;
-using GoggleMapsPlaces.Models.NearbyPlaces;
 namespace Google_Maps_Places_Bot
 {
     internal class GoogleMapsPlacesBot
@@ -72,7 +69,6 @@ namespace Google_Maps_Places_Bot
                 );
                 Console.WriteLine($"Отримано локацію:\nШирота: {message.Location.Latitude}\nДовгота: {message.Location.Longitude}");
                 
-                await GetNearby(message);
                 return;
             }
             if (message.Text != null && _waitingForRadius.TryGetValue(message.Chat.Id, out var waiting) && waiting)
@@ -88,9 +84,9 @@ namespace Google_Maps_Places_Bot
                     );
 
                     // Тут виклик API
-                    var client = new NearbyPlacesClient();
-                    NearbyPlaces result = await client.GetNearbyPlaces(lat, lon, radius, "uk");
-
+                    var apiClient = new NearbyPlacesApiClient();
+                    var result = await apiClient.GetNearbyPlacesAsync(lat, lon, radius, "uk");
+                    Console.WriteLine(result.ToString);
                     // Виводимо результат (спрощено)
                     if (result.results == null || result.results.Count() == 0)
                     {
@@ -106,6 +102,7 @@ namespace Google_Maps_Places_Bot
 
                         await botClient.SendTextMessageAsync(message.Chat.Id, msg);
                     }
+                    _waitingForRadius.Remove(message.Chat.Id);
                 }
                 else
                 {
@@ -120,11 +117,6 @@ namespace Google_Maps_Places_Bot
 
         }
 
-        private async Task GetNearby(Message message)
-        {
-            var client = new NearbyPlacesClient();
-
-        }
 
         private async Task RequestLocation(Message message)
         {
