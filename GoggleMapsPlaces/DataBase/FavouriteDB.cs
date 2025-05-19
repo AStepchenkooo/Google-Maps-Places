@@ -1,7 +1,7 @@
 ﻿using Npgsql;
 using System.Data;
 
-namespace Goggle_Maps_Places.DataBase
+namespace GoggleMapsPlaces.DataBase
 {
     public class FavouriteDB
     {

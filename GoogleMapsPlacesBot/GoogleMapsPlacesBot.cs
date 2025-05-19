@@ -4,9 +4,9 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Goggle_Maps_Places.Clients;
-using Goggle_Maps_Places.Models;
-using Goggle_Maps_Places.Models.NearbyPlaces;
+using GoggleMapsPlaces.Clients;
+using GoggleMapsPlaces.Models;
+using GoggleMapsPlaces.Models.NearbyPlaces;
 namespace Google_Maps_Places_Bot
 {
     internal class GoogleMapsPlacesBot

@@ -1,4 +1,4 @@
-﻿namespace Goggle_Maps_Places.Models.PlaceInfo
+﻿namespace GoggleMapsPlaces.Models.PlaceInfo
 {
     public class PlaceInfo
     {

@@ -1,4 +1,4 @@
-﻿namespace Goggle_Maps_Places
+﻿namespace GoggleMapsPlaces
 {
     public class Constants
     {

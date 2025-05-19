@@ -1,6 +1,6 @@
-﻿using Goggle_Maps_Places.Clients;
-using Goggle_Maps_Places.DataBase;
-using Goggle_Maps_Places.Models.NearbyPlaces;
+﻿using GoggleMapsPlaces.Clients;
+using GoggleMapsPlaces.DataBase;
+using GoggleMapsPlaces.Models.NearbyPlaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Goggle_Maps_Places.Controllers

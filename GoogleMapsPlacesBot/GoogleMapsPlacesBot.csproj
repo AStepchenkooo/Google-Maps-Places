@@ -14,7 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Goggle Maps Places\Google Maps Places.csproj" />
+    <ProjectReference Include="..\Goggle Maps Places\GoogleMapsPlaces.csproj" />
+    <ProjectReference Include="..\GoggleMapsPlaces\GoogleMapsPlaces.csproj" />
   </ItemGroup>
 
 </Project>

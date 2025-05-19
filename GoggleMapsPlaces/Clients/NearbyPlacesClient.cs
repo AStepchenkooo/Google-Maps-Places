@@ -1,7 +1,7 @@
-﻿using Goggle_Maps_Places.Models.NearbyPlaces;
+﻿using GoggleMapsPlaces.Models.NearbyPlaces;
 using Newtonsoft.Json;
 
-namespace Goggle_Maps_Places.Clients
+namespace GoggleMapsPlaces.Clients
 {
     public class NearbyPlacesClient
     {

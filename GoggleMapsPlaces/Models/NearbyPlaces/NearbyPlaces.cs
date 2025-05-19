@@ -1,4 +1,4 @@
-﻿namespace Goggle_Maps_Places.Models.NearbyPlaces
+﻿namespace GoggleMapsPlaces.Models.NearbyPlaces
 {
         public class NearbyPlaces
         {

@@ -1,4 +1,4 @@
-using Goggle_Maps_Places.Models;
+using GoggleMapsPlaces.Models;
 using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
