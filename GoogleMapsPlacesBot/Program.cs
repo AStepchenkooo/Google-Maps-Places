@@ -5,6 +5,5 @@ public class Program
     {
         GoogleMapsPlacesBot googleMapsPlacesBot = new GoogleMapsPlacesBot();
         googleMapsPlacesBot.Start();
-        Console.ReadKey();
     }
 }
