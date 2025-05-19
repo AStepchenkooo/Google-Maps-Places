@@ -1,5 +1,10 @@
 ﻿using Google_Maps_Places_Bot;
-
-GoogleMapsPlacesBot googleMapsPlacesBot = new GoogleMapsPlacesBot();
-googleMapsPlacesBot.Start();
-Console.ReadKey();
+public class Program
+{
+    static async Task Main(string[] args)
+    {
+        GoogleMapsPlacesBot googleMapsPlacesBot = new GoogleMapsPlacesBot();
+        googleMapsPlacesBot.Start();
+        Console.ReadKey();
+    }
+}
