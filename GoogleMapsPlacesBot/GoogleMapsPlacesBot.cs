@@ -18,9 +18,6 @@ namespace Google_Maps_Places_Bot
         {
             botClient.StartReceiving(HandlerUpdateAsync, HandlerError, receiverOptions, cancellationToken);
             var botMe = await botClient.GetMeAsync();
-            Console.WriteLine($"Бот {botMe.Username} почав працювати");
-            Console.ReadKey();
-
         }
 
         private Task HandlerError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
@@ -67,7 +64,6 @@ namespace Google_Maps_Places_Bot
                     message.Chat.Id,
                     "Введіть радіус пошуку в метрах (наприклад: 3000):"
                 );
-                Console.WriteLine($"Отримано локацію:\nШирота: {message.Location.Latitude}\nДовгота: {message.Location.Longitude}");
                 
                 return;
             }
@@ -86,7 +82,6 @@ namespace Google_Maps_Places_Bot
                     // Тут виклик API
                     var apiClient = new NearbyPlacesApiClient();
                     var result = await apiClient.GetNearbyPlacesAsync(lat, lon, radius, "uk");
-                    Console.WriteLine(result.ToString);
                     // Виводимо результат (спрощено)
                     if (result.results == null || result.results.Count() == 0)
                     {
