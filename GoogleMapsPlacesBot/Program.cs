@@ -5,5 +5,6 @@ public class Program
     {
         GoogleMapsPlacesBot googleMapsPlacesBot = new GoogleMapsPlacesBot();
         googleMapsPlacesBot.Start();
+        await Task.Delay(-1);
     }
 }
