@@ -22,7 +22,7 @@ namespace Google_Maps_Places_Bot
         {
             var url = $"{_baseUrl}/api/NearbyPlaces/SearchNearbyPlaces?latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
                 $"longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
-                $"radius={radius.ToString(System.Globalization.CultureInfo.InvariantCulture)}&language={radius}";
+                $"radius={radius.ToString(System.Globalization.CultureInfo.InvariantCulture)}&language={language}";
 
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -35,7 +35,7 @@ namespace Google_Maps_Places_Bot
         public async Task AddToFavouritesAsync(string name, string placeId, string comment, string chatId)
         {
             var client = new HttpClient();
-            var apiUrl = "https://google-maps-places-production.up.railway.app/api/FavouritePlaces/AddFavouritePlace";
+            var apiUrl = $"{_baseUrl}/api/NearbyPlaces/AddFavouritePlace";
 
             var data = new
             {

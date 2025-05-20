@@ -238,7 +238,7 @@ namespace Google_Maps_Places_Bot
 
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
             }
-            else if (callbackQuery.Data == "skip_comment")
+            if (callbackQuery.Data == "skip_comment")
             {
                 if (_waitingForComment.TryGetValue(chatId, out var place))
                 {
