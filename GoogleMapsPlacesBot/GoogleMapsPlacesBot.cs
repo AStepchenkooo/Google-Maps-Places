@@ -4,6 +4,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Bot.NearbyPlaces;
 namespace Google_Maps_Places_Bot
 {
     internal class GoogleMapsPlacesBot
@@ -13,6 +14,8 @@ namespace Google_Maps_Places_Bot
         ReceiverOptions receiverOptions = new ReceiverOptions { AllowedUpdates = { } };
         private Dictionary<long, (double lat, double lon)> _locationCache = new();
         private Dictionary<long, bool> _waitingForRadius = new();
+        private Dictionary<long, List<Result>> _userSearchResults = new();
+        private Dictionary<long, int> _userSearchIndex = new();
 
         public async Task Start()
         {
@@ -79,24 +82,41 @@ namespace Google_Maps_Places_Bot
                         $"🔍 Шукаємо місця в радіусі {radius}м від {lat}, {lon}..."
                     );
 
-                    // Тут виклик API
+                    // Виклик API
                     var apiClient = new NearbyPlacesApiClient();
                     var result = await apiClient.GetNearbyPlacesAsync(lat, lon, radius, "uk");
-                    // Виводимо результат (спрощено)
+
                     if (result.results == null || result.results.Count() == 0)
                     {
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Нічого не знайдено 😢");
                     }
                     else
                     {
-                        var msg = "📍 Ось деякі місця:\n";
-                        for (int i = 0; i < result.results.Count(); i++)
-                        {
-                            msg += $"{i + 1}. {result.results[i].name}\n";
-                        }
+                        // Кешуємо результати для користувача
+                        _userSearchResults[message.Chat.Id] = result.results.ToList();
+                        _userSearchIndex[message.Chat.Id] = 0;
 
-                        await botClient.SendTextMessageAsync(message.Chat.Id, msg);
+                        var place = result.results[0];
+                        var placeText = $"📍 <b>{place.name}</b>\n⭐ Рейтинг: {place.rating}\n📍 Адреса: {place.vicinity}";
+
+                        InlineKeyboardMarkup markup = new(
+                            new[]
+                            {
+                    new []
+                    {
+                        InlineKeyboardButton.WithCallbackData("Детальніше", $"details_0"),
+                        InlineKeyboardButton.WithCallbackData("Наступне", "next")
                     }
+                            });
+
+                        await botClient.SendTextMessageAsync(
+                            chatId: message.Chat.Id,
+                            text: placeText,
+                            replyMarkup: markup,
+                            parseMode: ParseMode.Html
+                        );
+                    }
+
                     _waitingForRadius.Remove(message.Chat.Id);
                 }
                 else
@@ -110,8 +130,66 @@ namespace Google_Maps_Places_Bot
                 return;
             }
 
-        }
 
+        }
+        private async Task HandleCallbackQueryAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery)
+        {
+            var chatId = callbackQuery.Message.Chat.Id;
+
+            if (!_userSearchResults.ContainsKey(chatId)) return;
+
+            if (callbackQuery.Data.StartsWith("details_"))
+            {
+                var index = int.Parse(callbackQuery.Data.Split('_')[1]);
+                var place = _userSearchResults[chatId][index];
+
+                string text = $"<b>{place.name}</b>\n" +
+                              $"🆔 Place ID: {place.place_id}\n" +
+                              $"⭐ Рейтинг: {place.rating}\n" +
+                              $"📍 Адреса: {place.vicinity}";
+
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                await botClient.SendTextMessageAsync(
+                    chatId,
+                    text,
+                    parseMode: ParseMode.Html
+                );
+            }
+            else if (callbackQuery.Data == "next")
+            {
+                var index = _userSearchIndex[chatId] + 1;
+                var places = _userSearchResults[chatId];
+
+                if (index >= places.Count)
+                {
+                    await botClient.AnswerCallbackQueryAsync(callbackQuery.Id, "Це останнє місце 😅");
+                    return;
+                }
+
+                _userSearchIndex[chatId] = index;
+                var place = places[index];
+
+                var text = $"📍 <b>{place.name}</b>\n⭐ Рейтинг: {place.rating}\n📍 Адреса: {place.vicinity}";
+
+                InlineKeyboardMarkup markup = new(
+                    new[]
+                    {
+                new []
+                {
+                    InlineKeyboardButton.WithCallbackData("Детальніше", $"details_{index}"),
+                    InlineKeyboardButton.WithCallbackData("Наступне", "next")
+                }
+                    });
+
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                await botClient.SendTextMessageAsync(
+                    chatId,
+                    text,
+                    replyMarkup: markup,
+                    parseMode: ParseMode.Html
+                );
+            }
+        }
 
         private async Task RequestLocation(Message message)
         {

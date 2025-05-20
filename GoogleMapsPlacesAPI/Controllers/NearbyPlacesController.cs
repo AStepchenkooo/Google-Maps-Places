@@ -25,17 +25,17 @@ namespace Goggle_Maps_Places.Controllers
         }
         [HttpGet]
         [ActionName("GetFavourite")]
-        public async Task<List<string>> GetFavouritesAsync()
+        public async Task<List<string>> GetFavouritesAsync(string ChatID)
         {
             FavouriteDB np = new FavouriteDB();
-            return np.GetFavouritePlacesAsync().Result;
+            return np.GetFavouritePlacesAsync(ChatID).Result;
         }
         [HttpPost]
         [ActionName("FavouriteAdd")]
-        public async Task FavouriteAddAsync(string Name, string PlaceID, string Comment)
+        public async Task FavouriteAddAsync(string Name, string PlaceID, string Comment, string ChatID)
         {
             FavouriteDB db = new FavouriteDB();
-            await db.InsertFavouritePlaceAsync(Name, PlaceID, Comment);
+            await db.InsertFavouritePlaceAsync(Name, PlaceID, Comment, ChatID);
         }
     }
 }

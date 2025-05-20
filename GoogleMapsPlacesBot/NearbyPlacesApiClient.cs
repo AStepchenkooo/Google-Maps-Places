@@ -1,4 +1,4 @@
-﻿using GoggleMapsPlaces.Models.NearbyPlaces;
+﻿using Bot.NearbyPlaces;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

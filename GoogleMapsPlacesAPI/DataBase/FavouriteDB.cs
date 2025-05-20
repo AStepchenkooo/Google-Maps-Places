@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using System.Data;
+using System.Xml.Linq;
 
 namespace GoggleMapsPlaces.DataBase
 {
@@ -7,26 +8,26 @@ namespace GoggleMapsPlaces.DataBase
     {
         NpgsqlConnection _connection = new NpgsqlConnection(Constants.Connect);
 
-        public async Task InsertFavouritePlaceAsync(string Name, string PlaceID, string Comment)
+        public async Task InsertFavouritePlaceAsync(string name, string placeID, string comment, string chatID)
         {
-            var sql = "INSERT INTO public.\"FavouritePlaces\"(\"Name\",\"PlaceID\",\"Comment\")" +
-                "VALUES (@Name, @PlaceID, @Comment)";
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, _connection);
+            var sql = "INSERT INTO public.\"FavouritePlaces\"(\"Name\", \"PlaceID\", \"Comment\", \"ChatID\") " +
+                      "VALUES (@Name, @PlaceID, @Comment, @ChatID)";
 
-            cmd.Parameters.AddWithValue("Name", Name);
-            cmd.Parameters.AddWithValue("PlaceID", PlaceID);
-            cmd.Parameters.AddWithValue("Comment", Comment);
+            await using var cmd = new NpgsqlCommand(sql, _connection);
+            cmd.Parameters.AddWithValue("Name", name);
+            cmd.Parameters.AddWithValue("PlaceID", placeID);
+            cmd.Parameters.AddWithValue("Comment", comment);
+            cmd.Parameters.AddWithValue("ChatID", chatID);
 
-            await _connection.OpenAsync();
+            if (_connection.State != ConnectionState.Open)
+                await _connection.OpenAsync();
             await cmd.ExecuteNonQueryAsync();
             await _connection.CloseAsync();
-
-            Console.WriteLine("\nKUKU\n");
         }
-        public async Task<List<string>> GetFavouritePlacesAsync()
+        public async Task<List<string>> GetFavouritePlacesAsync(string chatID)
         {
             var places = new List<string>();
-            var sql = "SELECT \"Name\",\"Comment\" FROM public.\"FavouritePlaces\"";
+            var sql = "SELECT \"Name\", \"Comment\" FROM public.\"FavouritePlaces\" WHERE \"ChatID\" = @ChatID";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
 
