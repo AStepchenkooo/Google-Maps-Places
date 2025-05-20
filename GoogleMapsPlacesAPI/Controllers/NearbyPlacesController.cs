@@ -2,6 +2,7 @@
 using GoggleMapsPlaces.DataBase;
 using GoggleMapsPlaces.Models.NearbyPlaces;
 using Microsoft.AspNetCore.Mvc;
+using Goggle_Maps_Places.Models.NearbyPlaces;
 
 namespace Goggle_Maps_Places.Controllers
 {
@@ -31,11 +32,12 @@ namespace Goggle_Maps_Places.Controllers
             return np.GetFavouritePlacesAsync(ChatID).Result;
         }
         [HttpPost]
-        [ActionName("FavouriteAdd")]
-        public async Task FavouriteAddAsync(string Name, string PlaceID, string Comment, string ChatID)
+        [ActionName("AddFavouritePlace")]
+        public async Task FavouriteAddAsync([FromBody] FavouritePlaceModel model)
         {
             FavouriteDB db = new FavouriteDB();
-            await db.InsertFavouritePlaceAsync(Name, PlaceID, Comment, ChatID);
+            await db.InsertFavouritePlaceAsync(model.Name, model.PlaceID, model.Comment, model.ChatID);
+
         }
     }
 }

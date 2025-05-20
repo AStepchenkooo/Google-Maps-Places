@@ -32,5 +32,24 @@ namespace Google_Maps_Places_Bot
             Console.WriteLine(json);
             return JsonConvert.DeserializeObject<NearbyPlaces>(json);
         }
+        public async Task AddToFavouritesAsync(string name, string placeId, string comment, string chatId)
+        {
+            var client = new HttpClient();
+            var apiUrl = "https://google-maps-places-production.up.railway.app/api/FavouritePlaces/AddFavouritePlace";
+
+            var data = new
+            {
+                Name = name,
+                PlaceID = placeId,
+                Comment = comment,
+                ChatID = chatId
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(apiUrl, content);
+
+            response.EnsureSuccessStatusCode();
+        }
+
     }
 }

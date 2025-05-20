@@ -1,10 +1,11 @@
-﻿using Telegram.Bot;
+﻿using Bot.NearbyPlaces;
+using Google_Maps_Places_Bot;
+using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Bot.NearbyPlaces;
 namespace Google_Maps_Places_Bot
 {
     internal class GoogleMapsPlacesBot
@@ -16,6 +17,8 @@ namespace Google_Maps_Places_Bot
         private Dictionary<long, bool> _waitingForRadius = new();
         private Dictionary<long, List<Result>> _userSearchResults = new();
         private Dictionary<long, int> _userSearchIndex = new();
+        private Dictionary<long, Result> _waitingForComment = new();
+
 
         public async Task Start()
         {
@@ -71,7 +74,7 @@ namespace Google_Maps_Places_Bot
                     message.Chat.Id,
                     "Введіть радіус пошуку в метрах (наприклад: 3000):"
                 );
-                
+
                 return;
             }
             if (message.Text != null && _waitingForRadius.TryGetValue(message.Chat.Id, out var waiting) && waiting)
@@ -133,6 +136,18 @@ namespace Google_Maps_Places_Bot
 
                 return;
             }
+            if (_waitingForComment.TryGetValue(message.Chat.Id, out var savedPlace))
+            {
+                string comment = message.Text;
+
+                var addToFavouriteAsync = new NearbyPlacesApiClient();
+                await addToFavouriteAsync.AddToFavouritesAsync(savedPlace.name, savedPlace.place_id, comment, message.Chat.Id.ToString());
+                await botClient.SendTextMessageAsync(message.Chat.Id, "✅ Додано в улюблені з коментарем");
+
+                _waitingForComment.Remove(message.Chat.Id);
+                return;
+            }
+
 
 
         }
@@ -182,6 +197,10 @@ namespace Google_Maps_Places_Bot
                 {
                     InlineKeyboardButton.WithCallbackData("Детальніше", $"details_{index}"),
                     InlineKeyboardButton.WithCallbackData("Наступне", "next")
+                },
+                new []
+                {
+                    InlineKeyboardButton.WithCallbackData("❤️ Додати до улюблених", $"addfav_{index}")
                 }
                     });
 
@@ -193,6 +212,41 @@ namespace Google_Maps_Places_Bot
                     parseMode: ParseMode.Html
                 );
             }
+            else if (callbackQuery.Data.StartsWith("addfav_"))
+            {
+                var index = int.Parse(callbackQuery.Data.Split('_')[1]);
+                var place = _userSearchResults[chatId][index];
+
+                _waitingForComment[chatId] = place;
+
+                var markup = new InlineKeyboardMarkup(new[]
+                {
+                    new[] { InlineKeyboardButton.WithCallbackData("Пропустити", "skip_comment") }
+                });
+
+                await botClient.SendTextMessageAsync(
+                    chatId,
+                    "📝 Бажаєш залишити коментар до обраного місця? Введи його повідомленням або натисни «Пропустити».",
+                    replyMarkup: markup
+                );
+
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+            }
+            else if (callbackQuery.Data == "skip_comment")
+            {
+                if (_waitingForComment.TryGetValue(chatId, out var place))
+                {
+                    var addToFavouriteAsync = new NearbyPlacesApiClient();
+                    await addToFavouriteAsync.AddToFavouritesAsync(place.name, place.place_id, "—", chatId.ToString());
+                    await botClient.SendTextMessageAsync(chatId, "✅ Додано в улюблені без коментаря");
+                    _waitingForComment.Remove(chatId);
+                }
+
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+            }
+
+
+
         }
 
         private async Task RequestLocation(Message message)
