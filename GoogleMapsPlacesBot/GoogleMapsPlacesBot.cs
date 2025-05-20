@@ -63,6 +63,11 @@ namespace Google_Maps_Places_Bot
                 await RequestLocation(message);
                 return;
             }
+            if (message.Text == "Вподобані місця")
+            {
+                await ShowFavoritesMenu(message.Chat.Id);
+                return;
+            }
             if (message.Type == MessageType.Location)
             {
                 var lat = message.Location.Latitude;
@@ -70,7 +75,13 @@ namespace Google_Maps_Places_Bot
 
                 _locationCache[message.Chat.Id] = (lat, lon);
                 _waitingForRadius[message.Chat.Id] = true;
-
+                ReplyKeyboardMarkup mainMenu = new(new[]
+                {
+                 new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+                })
+                {
+                    ResizeKeyboard = true
+                };
                 await botClient.SendTextMessageAsync(
                     message.Chat.Id,
                     "Введіть радіус пошуку в метрах (наприклад: 3000):"
@@ -288,6 +299,45 @@ namespace Google_Maps_Places_Bot
             await botClient.SendTextMessageAsync(message.Chat.Id, "Виберіть функцію", replyMarkup: replyKeyboardMarkup);
             return;
         }
+        private async Task ShowFavoritesMenu(long chatId)
+        {
+            try
+            {
+                var apiClient = new NearbyPlacesApiClient();
+                var favorites = await apiClient.GetFavouritesAsync(chatId.ToString());
 
+                if (favorites == null || !favorites.Any())
+                {
+                    await botClient.SendTextMessageAsync(
+                        chatId,
+                        "У вас поки немає улюблених місць ❤️",
+                        replyMarkup: new ReplyKeyboardMarkup(new[]
+                        {
+                    new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+                        })
+                        { ResizeKeyboard = true });
+                    return;
+                }
+
+                var message = "🌟 Ваші улюблені місця:\n\n" +
+                             string.Join("\n\n", favorites.Select((f, i) => $"{i + 1}. {f}"));
+
+                await botClient.SendTextMessageAsync(
+                    chatId,
+                    message,
+                    replyMarkup: new ReplyKeyboardMarkup(new[]
+                    {
+                new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+                    })
+                    { ResizeKeyboard = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Помилка отримання улюблених місць: {ex}");
+                await botClient.SendTextMessageAsync(
+                    chatId,
+                    "❌ Сталася помилка при отриманні списку улюблених місць");
+            }
+        }
     }
 }

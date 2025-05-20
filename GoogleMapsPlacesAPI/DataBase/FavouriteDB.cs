@@ -27,18 +27,19 @@ namespace GoggleMapsPlaces.DataBase
         public async Task<List<string>> GetFavouritePlacesAsync(string chatID)
         {
             var places = new List<string>();
-            var sql = "SELECT \"Name\", \"Comment\" FROM public.\"FavouritePlaces\" WHERE \"ChatID\" = @ChatID";
+            var sql = "SELECT \"name\", \"comment\", \"placeid\" FROM public.\"favouriteplaces\" WHERE \"chatid\" = @ChatID";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
 
             if (_connection.State != ConnectionState.Open)
                 await _connection.OpenAsync();
-
+            cmd.Parameters.AddWithValue("@chat_id", chatID);
             await using var reader = await cmd.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
             {
-                places.Add($"Place: {reader["Name"]}; Comment: {reader["Comment"]}");
+                places.Add($"📍 <b>{reader["name"]}</b>\n" +
+                  $"💬 Коментар: {reader["comment"]}");
             }
 
             await _connection.CloseAsync();

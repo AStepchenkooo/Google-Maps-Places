@@ -50,6 +50,21 @@ namespace Google_Maps_Places_Bot
 
             response.EnsureSuccessStatusCode();
         }
+        public async Task<List<string>> GetFavouritesAsync(string chatId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/NearbyPlaces/GetFavourite?ChatID={chatId}");
+                response.EnsureSuccessStatusCode();
 
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<string>>(json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Помилка отримання улюблених: {ex}");
+                return null;
+            }
+        }
     }
 }
