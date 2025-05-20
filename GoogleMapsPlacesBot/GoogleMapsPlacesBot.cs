@@ -41,6 +41,10 @@ namespace Google_Maps_Places_Bot
             {
                 await HandlerMessageAsync(botClient, update.Message);
             }
+            else if (update.Type == UpdateType.CallbackQuery)
+            {
+                await HandleCallbackQueryAsync(client, update.CallbackQuery);
+            }
         }
 
         private async Task HandlerMessageAsync(ITelegramBotClient botClient, Message message)
