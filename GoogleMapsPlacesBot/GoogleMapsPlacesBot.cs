@@ -1,5 +1,6 @@
 ﻿using Bot.NearbyPlaces;
 using Google_Maps_Places_Bot;
+using System;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -113,7 +114,12 @@ namespace Google_Maps_Places_Bot
                     {
                         InlineKeyboardButton.WithCallbackData("Детальніше", $"details_0"),
                         InlineKeyboardButton.WithCallbackData("Наступне", "next")
+                    },
+                    new []
+                    {
+                        InlineKeyboardButton.WithCallbackData("❤️ Додати до улюблених", $"addfav_0")
                     }
+                    
                             });
 
                         await botClient.SendTextMessageAsync(
