@@ -75,18 +75,16 @@ namespace Google_Maps_Places_Bot
 
                 _locationCache[message.Chat.Id] = (lat, lon);
                 _waitingForRadius[message.Chat.Id] = true;
-                ReplyKeyboardMarkup mainMenu = new(new[]
-                {
-                 new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-                })
-                {
-                    ResizeKeyboard = true
-                };
+
+                // Використовуємо ту саму клавіатуру, що і в MenuKeyboard
                 await botClient.SendTextMessageAsync(
                     message.Chat.Id,
-                    "Введіть радіус пошуку в метрах (наприклад: 3000):"
-                );
-
+                    "Введіть радіус пошуку в метрах (наприклад: 3000):",
+                    replyMarkup: new ReplyKeyboardMarkup(new[]
+                    {
+            new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+                    })
+                    { ResizeKeyboard = true });
                 return;
             }
             if (message.Text != null && _waitingForRadius.TryGetValue(message.Chat.Id, out var waiting) && waiting)
@@ -306,16 +304,21 @@ namespace Google_Maps_Places_Bot
                 var apiClient = new NearbyPlacesApiClient();
                 var favorites = await apiClient.GetFavouritesAsync(chatId.ToString());
 
+                // Створюємо меню один раз і використовуємо його далі
+                var menu = new ReplyKeyboardMarkup(new[]
+                {
+            new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+        })
+                {
+                    ResizeKeyboard = true
+                };
+
                 if (favorites == null || !favorites.Any())
                 {
                     await botClient.SendTextMessageAsync(
                         chatId,
                         "У вас поки немає улюблених місць ❤️",
-                        replyMarkup: new ReplyKeyboardMarkup(new[]
-                        {
-                    new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-                        })
-                        { ResizeKeyboard = true });
+                        replyMarkup: menu);
                     return;
                 }
 
@@ -325,18 +328,19 @@ namespace Google_Maps_Places_Bot
                 await botClient.SendTextMessageAsync(
                     chatId,
                     message,
-                    replyMarkup: new ReplyKeyboardMarkup(new[]
-                    {
-                new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-                    })
-                    { ResizeKeyboard = true });
+                    replyMarkup: menu);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Помилка отримання улюблених місць: {ex}");
                 await botClient.SendTextMessageAsync(
                     chatId,
-                    "❌ Сталася помилка при отриманні списку улюблених місць");
+                    "❌ Сталася помилка при отриманні списку улюблених місць",
+                    replyMarkup: new ReplyKeyboardMarkup(new[]
+                    {
+                new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+                    })
+                    { ResizeKeyboard = true });
             }
         }
     }
