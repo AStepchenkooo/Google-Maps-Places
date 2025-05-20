@@ -27,7 +27,7 @@ namespace GoggleMapsPlaces.DataBase
         public async Task<List<string>> GetFavouritePlacesAsync(string chatID)
         {
             var places = new List<string>();
-            var sql = "SELECT \"name\", \"comment\", \"placeid\" FROM public.\"favouriteplaces\" WHERE \"chatid\" = @ChatID";
+            var sql = "SELECT \"name\", \"comment\", \"placeid\" FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
 
