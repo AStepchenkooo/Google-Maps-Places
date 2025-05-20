@@ -10,7 +10,7 @@ namespace GoggleMapsPlaces.DataBase
 
         public async Task InsertFavouritePlaceAsync(string name, string placeID, string comment, string chatID)
         {
-            var sql = "INSERT INTO public.\"FavouritePlaces\"(\"Name\", \"PlaceID\", \"Comment\", \"ChatID\") " +
+            var sql = "INSERT INTO public.\"favouriteplaces\"(\"Name\", \"PlaceID\", \"Comment\", \"ChatID\") " +
                       "VALUES (@Name, @PlaceID, @Comment, @ChatID)";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
