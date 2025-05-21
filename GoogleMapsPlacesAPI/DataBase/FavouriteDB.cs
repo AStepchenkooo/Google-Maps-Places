@@ -39,8 +39,7 @@ namespace GoggleMapsPlaces.DataBase
             while (await reader.ReadAsync())
             {
                 places.Add($"📍 {reader["name"]}\n" +
-          $"🆔 ID: {reader["place_id"]}\n" +
-          $"💬 Коментар: {reader["comment"]}");
+                  $"💬 Коментар: {reader["comment"]}");
             }
 
             await _connection.CloseAsync();
