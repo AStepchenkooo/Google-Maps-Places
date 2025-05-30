@@ -348,7 +348,8 @@ namespace Google_Maps_Places_Bot
 
                 foreach (var fav in favorites)
                 {
-                    var placeDetails = await apiClient.GetInfoAsync(fav.PlaceId);
+                    var placeDetails = await apiClient.GetInfoAsync(fav.PlaceId.ToString());
+                    Console.WriteLine($"PlaceId: {fav.PlaceId}");
                     string photoUri = await apiClient.GetPhotoUriAsync(fav.PlaceId);
 
                     string text = $"📍 <b>{fav.Name}</b>\n" +

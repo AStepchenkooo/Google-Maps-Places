@@ -39,11 +39,9 @@ namespace GoggleMapsPlaces.DataBase
 
             while (await reader.ReadAsync())
             {
-                places.Add((
-                    reader["name"].ToString(),
-                    reader["comment"].ToString(),
-                    reader["placeid"].ToString()
-                ));
+                var placeId = reader["placeid"].ToString();
+                Console.WriteLine($"Отримано PlaceId з БД: {placeId}"); // Лог для перевірки
+                places.Add((reader["name"].ToString(), reader["comment"].ToString(), placeId));
             }
 
             await _connection.CloseAsync();
