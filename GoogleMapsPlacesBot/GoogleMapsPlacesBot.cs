@@ -1,4 +1,5 @@
 ﻿using Bot.NearbyPlaces;
+using GoggleMapsPlaces.Models.PlaceInfo;
 using Google_Maps_Places_Bot;
 using System;
 using Telegram.Bot;
@@ -180,11 +181,18 @@ namespace Google_Maps_Places_Bot
                 // Отримуємо URL фото
                 var apiClient = new NearbyPlacesApiClient();
                 string photoUri = await apiClient.GetPhotoUriAsync(place.place_id);
+                PlaceInfo placeDetails = apiClient.GetInfoAsync(place.place_id).Result;
 
-                string text = $"📍 <b>{place.name}</b>\n" +
-                              $"🆔 Place ID: {place.place_id}\n" +
-                              $"⭐ Рейтинг: {place.rating}\n" +
-                              $"📍 Адреса: {place.vicinity}";
+                string text = $"📍 <b>{placeDetails.result.name}</b>\n" +
+              $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})\n" +
+              $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
+              $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
+              $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
+              $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: {string.Join(", ", placeDetails.result.opening_hours.weekday_text)}\n" : "")}" +
+              $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
+
+
+
 
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
                 

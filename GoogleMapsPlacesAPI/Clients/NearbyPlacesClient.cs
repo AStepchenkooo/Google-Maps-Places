@@ -1,5 +1,6 @@
 ﻿using GoggleMapsPlaces.Models.NearbyPlaces;
 using Newtonsoft.Json;
+using GoggleMapsPlaces.Models.PlaceInfo;
 
 namespace GoggleMapsPlaces.Clients
 {
@@ -38,6 +39,27 @@ namespace GoggleMapsPlaces.Clients
                 var body = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(body);
                 var result = JsonConvert.DeserializeObject<NearbyPlaces>(body);
+                return result;
+            }
+        }
+        public async Task<PlaceInfo> GetInfo(string id)
+        {
+            var client = new HttpClient();
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"https://{_apihost}/maps/api/place/details/json?place_id={id}&region=uk&fields=all&language=uk&reviews_no_translations=true"),
+                Headers =
+                {           
+                    { "x-rapidapi-key", _apikey },
+                    { "x-rapidapi-host", _apihost }
+                },
+            };
+            using (var response = await client.SendAsync(request))
+            {
+                response.EnsureSuccessStatusCode();
+                var body = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<PlaceInfo>(body);
                 return result;
             }
         }

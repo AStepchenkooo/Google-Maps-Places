@@ -3,7 +3,7 @@ using GoggleMapsPlaces.DataBase;
 using GoggleMapsPlaces.Models.NearbyPlaces;
 using Microsoft.AspNetCore.Mvc;
 using Goggle_Maps_Places.Models.NearbyPlaces;
-
+using GoggleMapsPlaces.Models.PlaceInfo;
 namespace Goggle_Maps_Places.Controllers
 {
     [ApiController]
@@ -37,6 +37,14 @@ namespace Goggle_Maps_Places.Controllers
         {
             FavouriteDB db = new FavouriteDB();
             await db.InsertFavouritePlaceAsync(model.Name, model.PlaceID, model.Comment, model.ChatID);
+        }
+        [HttpGet]
+        [ActionName("PlaceInfo")]
+        public PlaceInfo GetInfo(string id)
+        {
+            NearbyPlacesClient placeInfo = new NearbyPlacesClient();
+            PlaceInfo result = placeInfo.GetInfo(id).Result;
+            return result;
         }
     }
 }

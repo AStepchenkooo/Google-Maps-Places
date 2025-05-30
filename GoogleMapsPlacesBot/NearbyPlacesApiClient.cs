@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GoggleMapsPlaces.Models.PlaceInfo;
 
 namespace Google_Maps_Places_Bot
 {
@@ -78,6 +79,18 @@ namespace Google_Maps_Places_Bot
             var photoUri = await response.Content.ReadAsStringAsync();
 
             return photoUri;
+        }
+        public async Task<PlaceInfo> GetInfoAsync(string id)
+        {
+            var url = $"{_baseUrl}/api/NearbyPlaces/PlaceInfo?id={id}";
+
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("JSON RESPONSE:");
+            Console.WriteLine(json);
+            return JsonConvert.DeserializeObject<PlaceInfo>(json);
         }
     }
 }
