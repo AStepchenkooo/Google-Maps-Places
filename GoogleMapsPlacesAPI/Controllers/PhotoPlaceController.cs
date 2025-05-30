@@ -13,12 +13,22 @@ namespace Goggle_Maps_Places.Controllers
         {
             this._logger = logger;
         }
+
         [HttpGet]
         [ActionName("GetPhoto")]
-        public string GetPhoto(string id)
+        public string GetPhoto([FromQuery] string id) // Додаємо FromQuery
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                return "Помилка: id відсутній!";
+            }
+
             PhotoPlaceClient client = new PhotoPlaceClient();
-            return client.PlacePhoto(id).Result;
+            var result = client.PlacePhoto(id).Result;
+
+            _logger.LogInformation($"Отримано photoUri: {result}");
+
+            return result ?? "Помилка отримання фото!";
         }
     }
 }
