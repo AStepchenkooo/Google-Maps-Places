@@ -75,9 +75,9 @@ namespace Google_Maps_Places_Bot
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
-            var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+            var photoUri = await response.Content.ReadAsStringAsync();
 
-            return jsonObject["photoUri"]?.ToString();
+            return photoUri;
         }
     }
 }
