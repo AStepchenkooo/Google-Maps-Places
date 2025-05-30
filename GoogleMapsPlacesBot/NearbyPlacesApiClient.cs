@@ -52,7 +52,7 @@ namespace Google_Maps_Places_Bot
 
             response.EnsureSuccessStatusCode();
         }
-        public async Task<List<string>> GetFavouritesAsync(string chatId)
+        public async Task<List<(string Name, string Comment, string PlaceId)>> GetFavouritesAsync(string chatId)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace Google_Maps_Places_Bot
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<List<string>>(json);
+                return JsonConvert.DeserializeObject<List<(string Name, string Comment, string PlaceId)>>(json);
             }
             catch (Exception ex)
             {

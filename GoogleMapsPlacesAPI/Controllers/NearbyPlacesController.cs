@@ -26,7 +26,7 @@ namespace Goggle_Maps_Places.Controllers
         }
         [HttpGet]
         [ActionName("GetFavourite")]
-        public async Task<List<string>> GetFavouritesAsync(string ChatID)
+        public async Task<List<(string Name, string Comment, string PlaceId)>> GetFavouritesAsync(string ChatID)
         {
             FavouriteDB np = new FavouriteDB();
             return np.GetFavouritePlacesAsync(ChatID).Result;

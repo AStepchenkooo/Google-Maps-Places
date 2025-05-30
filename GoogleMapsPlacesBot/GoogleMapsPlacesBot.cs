@@ -187,11 +187,11 @@ namespace Google_Maps_Places_Bot
 
                 string text = $"📍 <b>{placeDetails.result.name}</b>\n" +
               $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})\n" +
-              $"{reviewText}\n"+
+              $"{reviewText}\n" +
               $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
               $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
               $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
-              $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: \n\t{string.Join(", ", placeDetails.result.opening_hours.weekday_text)}\n\t" : "")}" +
+              $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: \n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}" : "❌ Графік роботи недоступний.\n")}" +
               $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
 
 
@@ -328,14 +328,14 @@ namespace Google_Maps_Places_Bot
                 var apiClient = new NearbyPlacesApiClient();
                 var favorites = await apiClient.GetFavouritesAsync(chatId.ToString());
 
-                // Створюємо меню один раз і використовуємо його далі
                 var menu = new ReplyKeyboardMarkup(new[]
-                {
-            new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-        })
+                    {
+                        new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+                    })
                 {
                     ResizeKeyboard = true
                 };
+
 
                 if (favorites == null || !favorites.Any())
                 {
@@ -346,13 +346,34 @@ namespace Google_Maps_Places_Bot
                     return;
                 }
 
-                var message = "🌟 Ваші улюблені місця:\n\n" +
-                             string.Join("\n\n", favorites.Select((f, i) => $"{i + 1}. {f}"));
+                foreach (var fav in favorites)
+                {
+                    var placeDetails = await apiClient.GetInfoAsync(fav.PlaceId);
+                    string photoUri = await apiClient.GetPhotoUriAsync(fav.PlaceId);
 
-                await botClient.SendTextMessageAsync(
-                    chatId,
-                    message,
-                    replyMarkup: menu);
+                    string text = $"📍 <b>{fav.Name}</b>\n" +
+                                  $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})\n" +
+                                  $"💬 <b>Твій коментар:</b> \"{fav.Comment}\"\n" +
+                                  $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
+                                  $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
+                                  $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
+                                  $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: \n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}" : "❌ Графік роботи недоступний.\n")}" +
+                                  $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
+
+                    if (!string.IsNullOrEmpty(photoUri))
+                    {
+                        await botClient.SendPhotoAsync(
+                            chatId,
+                            photo: photoUri,
+                            caption: text,
+                            parseMode: ParseMode.Html
+                        );
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(chatId, text, parseMode: ParseMode.Html);
+                    }
+                }
             }
             catch (Exception ex)
             {

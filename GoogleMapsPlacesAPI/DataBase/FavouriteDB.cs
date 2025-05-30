@@ -24,26 +24,29 @@ namespace GoggleMapsPlaces.DataBase
             await cmd.ExecuteNonQueryAsync();
             await _connection.CloseAsync();
         }
-        public async Task<List<string>> GetFavouritePlacesAsync(string chatID)
+        public async Task<List<(string Name, string Comment, string PlaceId)>> GetFavouritePlacesAsync(string chatID)
         {
-            var places = new List<string>();
+            var places = new List<(string Name, string Comment, string PlaceId)>();
             var sql = "SELECT \"name\", \"comment\", \"placeid\" FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
 
             if (_connection.State != ConnectionState.Open)
                 await _connection.OpenAsync();
+
             cmd.Parameters.AddWithValue("@chat_id", chatID);
             await using var reader = await cmd.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
             {
-                places.Add($"📍 {reader["name"]}\n" +
-                  $"💬 Коментар: {reader["comment"]}");
+                places.Add((
+                    reader["name"].ToString(),
+                    reader["comment"].ToString(),
+                    reader["placeid"].ToString()
+                ));
             }
 
             await _connection.CloseAsync();
-
             return places;
         }
 
