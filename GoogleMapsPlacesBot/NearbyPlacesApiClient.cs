@@ -69,7 +69,7 @@ namespace Google_Maps_Places_Bot
         }
         public async Task<string> GetPhotoUriAsync(string placeId)
         {
-            var url = $"{_baseUrl}/api/PhotoPlace/GetPhoto?placeId={placeId}";
+            var url = $"{_baseUrl}/api/PhotoPlace/GetPhoto?id={placeId}";
 
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
