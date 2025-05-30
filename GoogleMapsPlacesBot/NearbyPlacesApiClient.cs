@@ -1,5 +1,6 @@
 ﻿using Bot.NearbyPlaces;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,6 +66,18 @@ namespace Google_Maps_Places_Bot
                 Console.WriteLine($"Помилка отримання улюблених: {ex}");
                 return null;
             }
+        }
+        public async Task<string> GetPhotoUriAsync(string placeId)
+        {
+            var url = $"{_baseUrl}/api/PhotoPlace/GetPhoto?placeId={placeId}";
+
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+
+            return jsonObject["photoUri"]?.ToString();
         }
     }
 }

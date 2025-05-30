@@ -37,7 +37,6 @@ namespace Goggle_Maps_Places.Controllers
         {
             FavouriteDB db = new FavouriteDB();
             await db.InsertFavouritePlaceAsync(model.Name, model.PlaceID, model.Comment, model.ChatID);
-
         }
     }
 }

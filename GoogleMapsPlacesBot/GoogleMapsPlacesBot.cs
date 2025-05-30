@@ -177,17 +177,30 @@ namespace Google_Maps_Places_Bot
                 var index = int.Parse(callbackQuery.Data.Split('_')[1]);
                 var place = _userSearchResults[chatId][index];
 
-                string text = $"<b>{place.name}</b>\n" +
+                // Отримуємо URL фото
+                var apiClient = new NearbyPlacesApiClient();
+                string photoUri = await apiClient.GetPhotoUriAsync(place.place_id);
+
+                string text = $"📍 <b>{place.name}</b>\n" +
                               $"🆔 Place ID: {place.place_id}\n" +
                               $"⭐ Рейтинг: {place.rating}\n" +
                               $"📍 Адреса: {place.vicinity}";
 
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-                await botClient.SendTextMessageAsync(
-                    chatId,
-                    text,
-                    parseMode: ParseMode.Html
-                );
+                
+                if (!string.IsNullOrEmpty(photoUri))
+                {
+                    await botClient.SendPhotoAsync(
+                        chatId,
+                        photo: photoUri,
+                        caption: text,
+                        parseMode: ParseMode.Html
+                    );
+                }
+                else
+                {
+                    await botClient.SendTextMessageAsync(chatId, text, parseMode: ParseMode.Html);
+                }
             }
             else if (callbackQuery.Data == "next")
             {
