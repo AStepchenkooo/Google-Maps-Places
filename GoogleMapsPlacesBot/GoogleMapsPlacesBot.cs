@@ -1,7 +1,5 @@
 ﻿using Bot.NearbyPlaces;
 using GoggleMapsPlaces.Models.PlaceInfo;
-using Google_Maps_Places_Bot;
-using System;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -129,7 +127,7 @@ namespace Google_Maps_Places_Bot
                     {
                         InlineKeyboardButton.WithCallbackData("❤️ Додати до улюблених", $"addfav_0")
                     }
-                    
+
                             });
 
                         await botClient.SendTextMessageAsync(
@@ -182,20 +180,25 @@ namespace Google_Maps_Places_Bot
                 var apiClient = new NearbyPlacesApiClient();
                 string photoUri = await apiClient.GetPhotoUriAsync(place.place_id);
                 PlaceInfo placeDetails = apiClient.GetInfoAsync(place.place_id).Result;
+                var latestReview = placeDetails.result.reviews?.OrderByDescending(r => r.time).FirstOrDefault();
+                string reviewText = latestReview != null ?
+                    $"💬 <b>Останній відгук</b> ({latestReview.rating}⭐ від {latestReview.author_name}):\n\"{latestReview.text}\"\n" :
+                    "❌ Відгуки відсутні.\n";
 
                 string text = $"📍 <b>{placeDetails.result.name}</b>\n" +
               $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})\n" +
+              $"{reviewText}\n"+
               $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
               $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
               $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
-              $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: {string.Join(", ", placeDetails.result.opening_hours.weekday_text)}\n" : "")}" +
+              $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: \n\t{string.Join(", ", placeDetails.result.opening_hours.weekday_text)}\n\t" : "")}" +
               $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
 
 
 
 
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-                
+
                 if (!string.IsNullOrEmpty(photoUri))
                 {
                     await botClient.SendPhotoAsync(
