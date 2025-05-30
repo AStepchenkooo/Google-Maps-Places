@@ -349,7 +349,7 @@ namespace Google_Maps_Places_Bot
                 foreach (var fav in favorites)
                 {
                     string PlaceID=fav.PlaceId;
-                    Console.WriteLine(PlaceID+" перевірочка")
+                    Console.WriteLine(PlaceID + " перевірочка");
                     Console.WriteLine($"Перед запитом: {fav.PlaceId}");
                     var placeDetails = await apiClient.GetInfoAsync(fav.PlaceId.ToString());
                     Console.WriteLine($"PlaceId: {fav.PlaceId}");
