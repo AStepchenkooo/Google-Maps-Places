@@ -50,7 +50,7 @@ namespace GoggleMapsPlaces.DataBase
         public async Task<bool> RemoveFavouriteAsync(string chatId, string placeId)
         {
             var sql = "DELETE FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id AND \"placeid\" = @place_id";
-
+            Console.WriteLine($"Отримано запит в базі на видалення: ChatID={chatId}, PlaceID={placeId}");
             await using var cmd = new NpgsqlCommand(sql, _connection);
 
             if (_connection.State != ConnectionState.Open)

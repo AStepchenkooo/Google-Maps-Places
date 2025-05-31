@@ -299,7 +299,7 @@ namespace Google_Maps_Places_Bot
             else if (callbackQuery.Data.StartsWith("delete_"))
             {
                 var placeId = callbackQuery.Data.Split('_')[1];
-
+                Console.WriteLine($"Видалення місця з ID: {placeId}");
                 var apiClient = new NearbyPlacesApiClient();
                 bool success = await apiClient.RemoveFavouriteAsync(chatId.ToString(), placeId);
 

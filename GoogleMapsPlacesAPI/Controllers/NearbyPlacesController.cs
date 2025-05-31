@@ -59,6 +59,7 @@ namespace Goggle_Maps_Places.Controllers
         [ActionName("DeleteFavourite")]
         public async Task<IActionResult> DeleteFavourite(string chatId, string placeId)
         {
+            Console.WriteLine($"Отримано запит на видалення: ChatID={chatId}, PlaceID={placeId}");
             try
             {
                 FavouriteDB np = new FavouriteDB();
