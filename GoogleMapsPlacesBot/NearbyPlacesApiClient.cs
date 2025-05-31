@@ -103,7 +103,7 @@ namespace Google_Maps_Places_Bot
         }
         public async Task<bool> RemoveFavouriteAsync(string chatId, string placeId)
         {
-            var url = $"{_baseUrl}/api/NearbyPlace/DeleteFavourite?chatId={chatId}&placeId={placeId}";
+            var url = $"{_baseUrl}/api/NearbyPlaces/DeleteFavourite?chatId={chatId}&placeId={placeId}";
             Console.WriteLine($"Отримано запит на видалення: ChatID={chatId}, PlaceID={placeId}");
             var response = await _httpClient.DeleteAsync(url);
             return response.IsSuccessStatusCode;
