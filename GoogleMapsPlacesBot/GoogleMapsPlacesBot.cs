@@ -297,8 +297,9 @@ namespace Google_Maps_Places_Bot
 
                 _waitingForPlaceId[chatId] = placeId; 
             }
-            else if (callbackQuery.Data.StartsWith("delete_"))
+            if (callbackQuery.Data.StartsWith("delete_"))
             {
+                Console.WriteLine($"➡ Виконується DELETE для {callbackQuery.Data}");
                 var placeId = callbackQuery.Data.Split('_')[1];
                 Console.WriteLine($"Видалення місця з ID: {placeId}");
                 var apiClient = new NearbyPlacesApiClient();
