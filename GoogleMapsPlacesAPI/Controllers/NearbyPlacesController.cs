@@ -30,7 +30,7 @@ namespace Goggle_Maps_Places.Controllers
         {
             FavouriteDB np = new FavouriteDB();
             var result = np.GetFavouritePlacesAsync(ChatID).Result;
-            Console.WriteLine("Перевіряємо список перед foreach...");
+            Console.WriteLine("Перевіряємо список в контролері...");
             Console.WriteLine(string.Join("\n", result.Select(f => $"Name: {f.Name}, PlaceId: {f.PlaceId}")));
             return result;
         }

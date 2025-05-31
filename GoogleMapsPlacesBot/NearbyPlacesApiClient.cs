@@ -61,7 +61,7 @@ namespace Google_Maps_Places_Bot
 
                 var json = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<List<(string Name, string Comment, string PlaceId)>>(json);
-                Console.WriteLine("Перевіряємо список перед foreach...");
+                Console.WriteLine("Перевіряємо список в АПІ бота...");
                 Console.WriteLine(string.Join("\n", result.Select(f => $"Name: {f.Name}, PlaceId: {f.PlaceId}")));
                 return result;
             }
