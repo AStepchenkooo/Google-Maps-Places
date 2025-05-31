@@ -26,14 +26,20 @@ namespace Goggle_Maps_Places.Controllers
         }
         [HttpGet]
         [ActionName("GetFavourite")]
-        public async Task<List<(string Name, string Comment, string PlaceId)>> GetFavouritesAsync(string ChatID)
+        public async Task<List<FavouritePlaceModel>> GetFavouritesAsync(string ChatID)
         {
             FavouriteDB np = new FavouriteDB();
-            var result = np.GetFavouritePlacesAsync(ChatID).Result;
-            Console.WriteLine("Перевіряємо список в контролері...");
-            Console.WriteLine(string.Join("\n", result.Select(f => $"Name: {f.Name}, PlaceId: {f.PlaceId}")));
-            return result;
+            var result = await np.GetFavouritePlacesAsync(ChatID);
+
+            return result.Select(f => new FavouritePlaceModel
+            {
+                Name = f.Name,
+                PlaceID = f.PlaceId,
+                Comment = f.Comment,
+                ChatID = ChatID
+            }).ToList();
         }
+
         [HttpPost]
         [ActionName("AddFavouritePlace")]
         public async Task FavouriteAddAsync([FromBody] FavouritePlaceModel model)

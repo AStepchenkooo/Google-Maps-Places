@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GoggleMapsPlaces.Models.PlaceInfo;
+using Goggle_Maps_Places.Models.NearbyPlaces;
 
 namespace Google_Maps_Places_Bot
 {
@@ -52,7 +53,7 @@ namespace Google_Maps_Places_Bot
 
             response.EnsureSuccessStatusCode();
         }
-        public async Task<List<(string Name, string Comment, string PlaceId)>> GetFavouritesAsync(string chatId)
+        public async Task<List<FavouritePlaceModel>> GetFavouritesAsync(string chatId)
         {
             try
             {
@@ -60,9 +61,14 @@ namespace Google_Maps_Places_Bot
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<List<(string Name, string Comment, string PlaceId)>>(json);
+                Console.WriteLine("JSON отриманий від API:");
+                Console.WriteLine(json); // Логування JSON-відповіді
+
+                var result = JsonConvert.DeserializeObject<List<FavouritePlaceModel>>(json);
+
                 Console.WriteLine("Перевіряємо список в АПІ бота...");
-                Console.WriteLine(string.Join("\n", result.Select(f => $"Name: {f.Name}, PlaceId: {f.PlaceId}")));
+                Console.WriteLine(string.Join("\n", result.Select(f => $"Name: {f.Name}, PlaceID: {f.PlaceID}")));
+
                 return result;
             }
             catch (Exception ex)

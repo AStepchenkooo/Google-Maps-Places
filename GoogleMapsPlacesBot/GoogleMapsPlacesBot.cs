@@ -6,6 +6,8 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Goggle_Maps_Places.Models.NearbyPlaces;
+
 namespace Google_Maps_Places_Bot
 {
     internal class GoogleMapsPlacesBot
@@ -345,15 +347,15 @@ namespace Google_Maps_Places_Bot
                         replyMarkup: menu);
                     return;
                 }
-
+                Console.WriteLine("Перевіряємо улюблені місця перед виводом:");
                 foreach (var fav in favorites)
                 {
-                    string PlaceID=fav.PlaceId;
-                    Console.WriteLine(PlaceID + " перевірочка");
-                    Console.WriteLine($"Перед запитом: {fav.PlaceId}");
-                    var placeDetails = await apiClient.GetInfoAsync(fav.PlaceId.ToString());
-                    Console.WriteLine($"PlaceId: {fav.PlaceId}");
-                    string photoUri = await apiClient.GetPhotoUriAsync(fav.PlaceId);
+                    Console.WriteLine($"Name: {fav.Name}, PlaceID: {fav.PlaceID}");
+                }
+                foreach (var fav in favorites)
+                {
+                    var placeDetails = await apiClient.GetInfoAsync(fav.PlaceID); // PlaceId тепер у FavouritePlaceModel
+                    string photoUri = await apiClient.GetPhotoUriAsync(fav.PlaceID);
 
                     string text = $"📍 <b>{fav.Name}</b>\n" +
                                   $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})\n" +
@@ -361,7 +363,7 @@ namespace Google_Maps_Places_Bot
                                   $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
                                   $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
                                   $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
-                                  $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: \n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}" : "❌ Графік роботи недоступний.\n")}" +
+                                  $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік:\n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}" : "❌ Графік роботи недоступний.\n")}" +
                                   $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
 
                     if (!string.IsNullOrEmpty(photoUri))
@@ -378,6 +380,7 @@ namespace Google_Maps_Places_Bot
                         await botClient.SendTextMessageAsync(chatId, text, parseMode: ParseMode.Html);
                     }
                 }
+
             }
             catch (Exception ex)
             {
