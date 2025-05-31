@@ -171,10 +171,10 @@ namespace Google_Maps_Places_Bot
             Console.WriteLine($"Отримано CallbackData: {callbackQuery.Data}");
             var chatId = callbackQuery.Message.Chat.Id;
 
-            if (!_userSearchResults.ContainsKey(chatId)) return;
-
             if (callbackQuery.Data.StartsWith("details_"))
             {
+                if (!_userSearchResults.ContainsKey(chatId)) return;
+
                 var index = int.Parse(callbackQuery.Data.Split('_')[1]);
                 var place = _userSearchResults[chatId][index];
 
