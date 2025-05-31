@@ -60,7 +60,10 @@ namespace Google_Maps_Places_Bot
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<List<(string Name, string Comment, string PlaceId)>>(json);
+                var result = JsonConvert.DeserializeObject<List<(string Name, string Comment, string PlaceId)>>(json);
+                Console.WriteLine("Перевіряємо список перед foreach...");
+                Console.WriteLine(string.Join("\n", result.Select(f => $"Name: {f.Name}, PlaceId: {f.PlaceId}")));
+                return result;
             }
             catch (Exception ex)
             {

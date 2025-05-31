@@ -29,7 +29,10 @@ namespace Goggle_Maps_Places.Controllers
         public async Task<List<(string Name, string Comment, string PlaceId)>> GetFavouritesAsync(string ChatID)
         {
             FavouriteDB np = new FavouriteDB();
-            return np.GetFavouritePlacesAsync(ChatID).Result;
+            var result = np.GetFavouritePlacesAsync(ChatID).Result;
+            Console.WriteLine("Перевіряємо список перед foreach...");
+            Console.WriteLine(string.Join("\n", result.Select(f => $"Name: {f.Name}, PlaceId: {f.PlaceId}")));
+            return result;
         }
         [HttpPost]
         [ActionName("AddFavouritePlace")]
