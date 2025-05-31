@@ -168,6 +168,7 @@ namespace Google_Maps_Places_Bot
         }
         private async Task HandleCallbackQueryAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery)
         {
+            Console.WriteLine($"Отримано CallbackData: {callbackQuery.Data}");
             var chatId = callbackQuery.Message.Chat.Id;
 
             if (!_userSearchResults.ContainsKey(chatId)) return;
@@ -388,7 +389,7 @@ namespace Google_Maps_Places_Bot
                                   $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
                                   $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік:\n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}\n" : "❌ Графік роботи недоступний.\n")}" +
                                   $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
-
+                    Console.WriteLine($"Генеруємо кнопки: delete_{fav.PlaceID}");
                     InlineKeyboardMarkup markup = new(
                     new[]
                         {
