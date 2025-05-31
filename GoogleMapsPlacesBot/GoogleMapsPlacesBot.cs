@@ -404,6 +404,7 @@ namespace Google_Maps_Places_Bot
                             chatId,
                             photo: photoUri,
                             caption: text,
+                            replyMarkup: markup,
                             parseMode: ParseMode.Html
                         );
                     }
