@@ -101,5 +101,11 @@ namespace Google_Maps_Places_Bot
             Console.WriteLine(json);
             return JsonConvert.DeserializeObject<PlaceInfo>(json);
         }
+        public async Task<bool> RemoveFavouriteAsync(string chatId, string placeId)
+        {
+            var url = $"{_baseUrl}/api/NearbyPlace/DeleteFavourite?chatId={chatId}&placeId={placeId}";
+            var response = await _httpClient.DeleteAsync(url);
+            return response.IsSuccessStatusCode;
+        }
     }
 }

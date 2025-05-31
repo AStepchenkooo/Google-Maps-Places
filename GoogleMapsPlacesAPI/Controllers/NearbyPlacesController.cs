@@ -55,5 +55,25 @@ namespace Goggle_Maps_Places.Controllers
             PlaceInfo result = placeInfo.GetInfo(id).Result;
             return result;
         }
+        [HttpDelete]
+        [ActionName("DeleteFavourite")]
+        public async Task<IActionResult> DeleteFavourite(string chatId, string placeId)
+        {
+            try
+            {
+                FavouriteDB np = new FavouriteDB();
+                bool success = await np.RemoveFavouriteAsync(chatId, placeId);
+
+                if (success)
+                    return Ok(new { message = "✅ Успішно видалено з улюблених!" });
+                else
+                    return BadRequest(new { message = "❌ Помилка при видаленні!" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Помилка видалення: {ex}");
+                return StatusCode(500, new { message = "❌ Внутрішня помилка сервера" });
+            }
+        }
     }
 }

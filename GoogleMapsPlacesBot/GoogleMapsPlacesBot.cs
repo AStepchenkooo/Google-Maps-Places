@@ -6,7 +6,6 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Goggle_Maps_Places.Models.NearbyPlaces;
 
 namespace Google_Maps_Places_Bot
 {
@@ -20,7 +19,7 @@ namespace Google_Maps_Places_Bot
         private Dictionary<long, List<Result>> _userSearchResults = new();
         private Dictionary<long, int> _userSearchIndex = new();
         private Dictionary<long, Result> _waitingForComment = new();
-
+        private Dictionary<long, string> _waitingForPlaceId = new();
 
         public async Task Start()
         {
@@ -193,7 +192,7 @@ namespace Google_Maps_Places_Bot
               $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
               $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
               $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
-              $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: \n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}" : "❌ Графік роботи недоступний.\n")}" +
+              $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: \n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}\n" : "❌ Графік роботи недоступний.\n")}" +
               $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
 
 
@@ -285,6 +284,30 @@ namespace Google_Maps_Places_Bot
 
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
             }
+            if (callbackQuery.Data.StartsWith("edit_"))
+            {
+                var placeId = callbackQuery.Data.Split('_')[1];
+
+                // Запитуємо у користувача новий коментар
+                await botClient.SendTextMessageAsync(
+                    chatId,
+                    $"✏ Введіть новий коментар для місця з ID {placeId}:"
+                );
+
+                _waitingForPlaceId[chatId] = placeId; 
+            }
+            else if (callbackQuery.Data.StartsWith("delete_"))
+            {
+                var placeId = callbackQuery.Data.Split('_')[1];
+
+                var apiClient = new NearbyPlacesApiClient();
+                bool success = await apiClient.RemoveFavouriteAsync(chatId.ToString(), placeId);
+
+                if (success)
+                    await botClient.SendTextMessageAsync(chatId, "✅ Місце видалено з улюблених!");
+                else
+                    await botClient.SendTextMessageAsync(chatId, "❌ Помилка при видаленні!");
+            }
 
 
 
@@ -363,9 +386,18 @@ namespace Google_Maps_Places_Bot
                                   $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
                                   $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
                                   $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
-                                  $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік:\n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}" : "❌ Графік роботи недоступний.\n")}" +
+                                  $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік:\n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}\n" : "❌ Графік роботи недоступний.\n")}" +
                                   $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
 
+                    InlineKeyboardMarkup markup = new(
+                    new[]
+                        {
+                        new []
+                        {
+                            InlineKeyboardButton.WithCallbackData("✏ Редагувати коментар", $"edit_{fav.PlaceID}"),
+                            InlineKeyboardButton.WithCallbackData("❌ Видалити", $"delete_{fav.PlaceID}")
+                        }
+                    });
                     if (!string.IsNullOrEmpty(photoUri))
                     {
                         await botClient.SendPhotoAsync(
@@ -377,7 +409,7 @@ namespace Google_Maps_Places_Bot
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(chatId, text, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, text, replyMarkup: markup, parseMode: ParseMode.Html);
                     }
                 }
 

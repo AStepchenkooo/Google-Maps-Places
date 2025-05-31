@@ -47,6 +47,22 @@ namespace GoggleMapsPlaces.DataBase
             await _connection.CloseAsync();
             return places;
         }
+        public async Task<bool> RemoveFavouriteAsync(string chatId, string placeId)
+        {
+            var sql = "DELETE FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id AND \"placeid\" = @place_id";
 
+            await using var cmd = new NpgsqlCommand(sql, _connection);
+
+            if (_connection.State != ConnectionState.Open)
+                await _connection.OpenAsync();
+
+            cmd.Parameters.AddWithValue("@chat_id", chatId);
+            cmd.Parameters.AddWithValue("@place_id", placeId);
+
+            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+            await _connection.CloseAsync();
+
+            return rowsAffected > 0; 
+        }
     }
 }
