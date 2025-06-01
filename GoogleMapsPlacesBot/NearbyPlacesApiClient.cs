@@ -112,18 +112,21 @@ namespace Google_Maps_Places_Bot
         {
             var url = $"{_baseUrl}/api/NearbyPlaces/EditFavourite";
 
-            var payload = new
+            var payload = new EditFavouriteRequest
             {
-                chatId = chatId,
-                placeId = placeId,
-                newComment = newComment
+                ChatId = chatId,
+                PlaceId = placeId,
+                NewComment = newComment
             };
 
-            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-            Console.WriteLine($"JSON для оновлення: {JsonConvert.SerializeObject(payload)}");
+            var jsonPayload = JsonConvert.SerializeObject(payload);
+            Console.WriteLine($"📤 JSON-запит перед відправкою: {jsonPayload}");
+
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
             var response = await _httpClient.PutAsync(url, content);
             Console.WriteLine($"🔍 Відповідь сервера: {response.StatusCode}");
             Console.WriteLine($"🔍 Текст відповіді: {await response.Content.ReadAsStringAsync()}");
+
             return response.IsSuccessStatusCode;
         }
     }

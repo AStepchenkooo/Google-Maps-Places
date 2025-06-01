@@ -78,15 +78,19 @@ namespace Goggle_Maps_Places.Controllers
         }
         [HttpPut]
         [ActionName("EditFavourite")]
-        public async Task<IActionResult> EditFavourite([FromBody] string chatId, string placeId, string newComment)
+        public async Task<IActionResult> EditFavourite([FromBody] EditFavouriteRequest request)
         {
-            Console.WriteLine($"🔍 Отримано PUT-запит: chatId={chatId}, placeId={placeId}, newComment={newComment}");
+            if (request == null || string.IsNullOrEmpty(request.ChatId) || string.IsNullOrEmpty(request.PlaceId) || string.IsNullOrEmpty(request.NewComment))
+            {
+                return BadRequest(new { message = "❌ Всі поля є обов’язковими!" });
+            }
+
+            Console.WriteLine($"🛠 Отримано PUT-запит: ChatID={request.ChatId}, PlaceID={request.PlaceId}, NewComment={request.NewComment}");
 
             try
             {
                 FavouriteDB np = new FavouriteDB();
-                Console.WriteLine($"🛠 Отримано запит на редагування: chatId={chatId}, placeId={placeId}, newComment={newComment}");
-                bool success = await np.UpdateCommentAsync(chatId, placeId, newComment);
+                bool success = await np.UpdateCommentAsync(request.ChatId, request.PlaceId, request.NewComment);
 
                 Console.WriteLine($"🔍 Результат оновлення коментаря: {success}");
 
