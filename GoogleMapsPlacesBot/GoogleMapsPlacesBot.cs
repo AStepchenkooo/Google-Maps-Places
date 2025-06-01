@@ -20,6 +20,7 @@ namespace Google_Maps_Places_Bot
         private Dictionary<long, int> _userSearchIndex = new();
         private Dictionary<long, Result> _waitingForComment = new();
         private Dictionary<long, string> _waitingForPlaceId = new();
+        private Dictionary<long, string> _waitingForType = new();
 
         public async Task Start()
         {
@@ -74,42 +75,49 @@ namespace Google_Maps_Places_Bot
                 var lon = message.Location.Longitude;
 
                 _locationCache[message.Chat.Id] = (lat, lon);
-                _waitingForRadius[message.Chat.Id] = true;
 
-                // Використовуємо ту саму клавіатуру, що і в MenuKeyboard
+                var markup = new InlineKeyboardMarkup(new[]
+                    {
+        new [] { InlineKeyboardButton.WithCallbackData("☕ Кафе", "search_cafe"), InlineKeyboardButton.WithCallbackData("💊 Аптека", "search_pharmacy") },
+        new [] { InlineKeyboardButton.WithCallbackData("🌳 Парк", "search_park"), InlineKeyboardButton.WithCallbackData("🎭 Музей", "search_museum") },
+        new [] { InlineKeyboardButton.WithCallbackData("🛍 Магазин", "search_store"), InlineKeyboardButton.WithCallbackData("🏥 Лікарня", "search_hospital") },
+        new [] { InlineKeyboardButton.WithCallbackData("🚇 Станція метро", "search_subway_station"), InlineKeyboardButton.WithCallbackData("✈ Аеропорт", "search_airport") }
+                    });
+
                 await botClient.SendTextMessageAsync(
                     message.Chat.Id,
-                    "Введіть радіус пошуку в метрах (наприклад: 3000):",
-                    replyMarkup: new ReplyKeyboardMarkup(new[]
-                    {
-            new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-                    })
-                    { ResizeKeyboard = true });
-                return;
+                    "🔍 Обери тип місця:",
+                    replyMarkup: markup
+                );
+
             }
-            if (message.Text != null && _waitingForRadius.TryGetValue(message.Chat.Id, out var waiting) && waiting)
+            if (_waitingForRadius.ContainsKey(message.Chat.Id) && _waitingForRadius[message.Chat.Id])
             {
-                if (double.TryParse(message.Text, out double radius))
+                if (int.TryParse(message.Text, out int radius))
                 {
-                    _waitingForRadius[message.Chat.Id] = false;
-                    var (lat, lon) = _locationCache[message.Chat.Id];
+                    _waitingForRadius.Remove(message.Chat.Id);
+                    var placeType = _waitingForType[message.Chat.Id];
+                    _waitingForType.Remove(message.Chat.Id);
 
-                    await botClient.SendTextMessageAsync(
-                        message.Chat.Id,
-                        $"🔍 Шукаємо місця в радіусі {radius}м від {lat}, {lon}..."
-                    );
+                    if (!_locationCache.ContainsKey(message.Chat.Id))
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "❌ Спочатку потрібно надіслати свою геолокацію!");
+                        return;
+                    }
 
-                    // Виклик API
+                    var (lat, lon) = _locationCache[message.Chat.Id]; // Отримуємо координати
+
+                    await botClient.SendTextMessageAsync(message.Chat.Id, $"🔍 Шукаємо {placeType} в радіусі {radius}м...");
+
                     var apiClient = new NearbyPlacesApiClient();
-                    var result = await apiClient.GetNearbyPlacesAsync(lat, lon, radius, "uk");
+                    var result = await apiClient.GetNearbyPlacesAsync(lat, lon, radius, "uk", placeType);
 
                     if (result.results == null || result.results.Count() == 0)
                     {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, "Нічого не знайдено 😢");
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "❌ Нічого не знайдено.");
                     }
                     else
                     {
-                        // Кешуємо результати для користувача
                         _userSearchResults[message.Chat.Id] = result.results.ToList();
                         _userSearchIndex[message.Chat.Id] = 0;
 
@@ -128,28 +136,15 @@ namespace Google_Maps_Places_Bot
                     {
                         InlineKeyboardButton.WithCallbackData("❤️ Додати до улюблених", $"addfav_0")
                     }
-
                             });
 
-                        await botClient.SendTextMessageAsync(
-                            chatId: message.Chat.Id,
-                            text: placeText,
-                            replyMarkup: markup,
-                            parseMode: ParseMode.Html
-                        );
+                        await botClient.SendTextMessageAsync(message.Chat.Id, placeText, replyMarkup: markup, parseMode: ParseMode.Html);
                     }
-
-                    _waitingForRadius.Remove(message.Chat.Id);
                 }
                 else
                 {
-                    await botClient.SendTextMessageAsync(
-                        message.Chat.Id,
-                        "❗ Введіть число (радіус у метрах), наприклад: 3000"
-                    );
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "❗ Введіть число (радіус у метрах), наприклад: 3000");
                 }
-
-                return;
             }
             if (_waitingForComment.TryGetValue(message.Chat.Id, out var savedPlace))
             {
@@ -308,7 +303,7 @@ namespace Google_Maps_Places_Bot
                     $"✏ Введіть новий коментар для місця з ID {placeId}:"
                 );
 
-                _waitingForPlaceId[chatId] = placeId; 
+                _waitingForPlaceId[chatId] = placeId;
             }
             if (callbackQuery.Data.StartsWith("delete_"))
             {
@@ -323,7 +318,14 @@ namespace Google_Maps_Places_Bot
                 else
                     await botClient.SendTextMessageAsync(chatId, "❌ Помилка при видаленні!");
             }
+            if (callbackQuery.Data.StartsWith("search_"))
+            {
+                var placeType = callbackQuery.Data.Split('_')[1]; // Отримуємо тип місця
+                _waitingForType[chatId] = placeType; // Зберігаємо вибір
 
+                await botClient.SendTextMessageAsync(chatId, "📝 Введіть радіус пошуку в метрах (наприклад: 3000):");
+                _waitingForRadius[chatId] = true; // Чекаємо введення
+            }
 
 
         }

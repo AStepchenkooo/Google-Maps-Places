@@ -21,11 +21,11 @@ namespace Google_Maps_Places_Bot
             _httpClient = new HttpClient();
         }
 
-        public async Task<NearbyPlaces> GetNearbyPlacesAsync(double latitude, double longitude, double radius, string language)
+        public async Task<NearbyPlaces> GetNearbyPlacesAsync(double latitude, double longitude, double radius, string language, string type)
         {
             var url = $"{_baseUrl}/api/NearbyPlaces/SearchNearbyPlaces?latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
                 $"longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
-                $"radius={radius.ToString(System.Globalization.CultureInfo.InvariantCulture)}&language={language}";
+                $"radius={radius.ToString(System.Globalization.CultureInfo.InvariantCulture)}&type={type}&language={language}";
 
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();

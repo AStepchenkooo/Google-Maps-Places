@@ -18,10 +18,10 @@ namespace Goggle_Maps_Places.Controllers
         }
         [HttpGet]
         [ActionName("SearchNearbyPlaces")]
-        public NearbyPlaces SearchNearbyPlaces(double latitude, double longitude, double radius, string language)
+        public NearbyPlaces SearchNearbyPlaces(double latitude, double longitude, double radius, string language, string type)
         {
             NearbyPlacesClient np = new NearbyPlacesClient();
-            NearbyPlaces places = np.GetNearbyPlaces(latitude, longitude, radius, language).Result;
+            NearbyPlaces places = np.GetNearbyPlaces(latitude, longitude, radius, language, type).Result;
             return places;
         }
         [HttpGet]

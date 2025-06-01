@@ -16,11 +16,11 @@ namespace GoggleMapsPlaces.Clients
             _apikey = Constants.ApiKey;
             _apihost = Constants.ApiHost;
         }
-        public async Task<NearbyPlaces> GetNearbyPlaces(double latitude, double longitude, double radius, string language)
+        public async Task<NearbyPlaces> GetNearbyPlaces(double latitude, double longitude, double radius, string language, string type)
         {
             var client = new HttpClient();
 
-            var requestUri = $"{_address}location={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&radius={radius}&language={language}";
+            var requestUri = $"{_address}location={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&radius={radius}&type={type}&language={language}";
 
             var request = new HttpRequestMessage
             {
