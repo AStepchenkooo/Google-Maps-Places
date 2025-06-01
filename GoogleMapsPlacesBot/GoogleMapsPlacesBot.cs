@@ -162,7 +162,20 @@ namespace Google_Maps_Places_Bot
                 _waitingForComment.Remove(message.Chat.Id);
                 return;
             }
+            if (_waitingForPlaceId.TryGetValue(message.Chat.Id, out var placeId))
+            {
+                string newComment = message.Text;
 
+                var apiClient = new NearbyPlacesApiClient();
+                bool success = await apiClient.EditFavouriteAsync(message.Chat.Id.ToString(), placeId, newComment);
+
+                if (success)
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "✅ Коментар успішно оновлено!");
+                else
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "❌ Помилка при оновленні!");
+
+                _waitingForPlaceId.Remove(message.Chat.Id);
+            }
 
 
         }

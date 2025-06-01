@@ -64,5 +64,23 @@ namespace GoggleMapsPlaces.DataBase
 
             return rowsAffected > 0; 
         }
+        public async Task<bool> UpdateCommentAsync(string chatId, string placeId, string newComment)
+        {
+            var sql = "UPDATE public.\"favouriteplaces\" SET \"comment\" = @comment WHERE \"chatid\" = @chat_id AND \"placeid\" = @place_id";
+
+            await using var cmd = new NpgsqlCommand(sql, _connection);
+
+            if (_connection.State != ConnectionState.Open)
+                await _connection.OpenAsync();
+
+            cmd.Parameters.AddWithValue("@chat_id", chatId);
+            cmd.Parameters.AddWithValue("@place_id", placeId);
+            cmd.Parameters.AddWithValue("@comment", newComment);
+
+            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+            await _connection.CloseAsync();
+
+            return rowsAffected > 0; // Якщо оновлено хоча б один запис, повертаємо true
+        }
     }
 }

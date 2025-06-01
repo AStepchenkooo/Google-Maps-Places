@@ -76,5 +76,25 @@ namespace Goggle_Maps_Places.Controllers
                 return StatusCode(500, new { message = "❌ Внутрішня помилка сервера" });
             }
         }
+        [HttpPut]
+        [ActionName("EditFavourite")]
+        public async Task<IActionResult> EditFavourite(string chatId, string placeId, string newComment)
+        {
+            try
+            {
+                FavouriteDB np = new FavouriteDB();
+                bool success = await np.UpdateCommentAsync(chatId, placeId, newComment);
+
+                if (success)
+                    return Ok(new { message = "✅ Коментар оновлено!" });
+                else
+                    return BadRequest(new { message = "❌ Помилка при оновленні!" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Помилка оновлення коментаря: {ex}");
+                return StatusCode(500, new { message = "❌ Внутрішня помилка сервера" });
+            }
+        }
     }
 }

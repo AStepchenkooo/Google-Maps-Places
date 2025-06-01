@@ -108,5 +108,21 @@ namespace Google_Maps_Places_Bot
             var response = await _httpClient.DeleteAsync(url);
             return response.IsSuccessStatusCode;
         }
+        public async Task<bool> EditFavouriteAsync(string chatId, string placeId, string newComment)
+        {
+            var url = $"{_baseUrl}/api/NearbyPlaces/EditFavourite";
+
+            var payload = new
+            {
+                chatId = chatId,
+                placeId = placeId,
+                newComment = newComment
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PutAsync(url, content);
+            return response.IsSuccessStatusCode;
+        }
     }
 }
