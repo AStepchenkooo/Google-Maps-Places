@@ -122,8 +122,8 @@ namespace Google_Maps_Places_Bot
             var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
             Console.WriteLine($"JSON для оновлення: {JsonConvert.SerializeObject(payload)}");
             var response = await _httpClient.PutAsync(url, content);
-            Console.WriteLine($"🔍 Відповідь API: {response.StatusCode}");
-
+            Console.WriteLine($"🔍 Відповідь сервера: {response.StatusCode}");
+            Console.WriteLine($"🔍 Текст відповіді: {await response.Content.ReadAsStringAsync()}");
             return response.IsSuccessStatusCode;
         }
     }

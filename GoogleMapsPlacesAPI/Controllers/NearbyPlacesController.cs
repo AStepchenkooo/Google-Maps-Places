@@ -78,13 +78,14 @@ namespace Goggle_Maps_Places.Controllers
         }
         [HttpPut]
         [ActionName("EditFavourite")]
-        public async Task<IActionResult> EditFavourite(string chatId, string placeId, string newComment)
+        public async Task<IActionResult> EditFavourite([FromBody] string chatId, string placeId, string newComment)
         {
             Console.WriteLine($"🔍 Отримано PUT-запит: chatId={chatId}, placeId={placeId}, newComment={newComment}");
 
             try
             {
                 FavouriteDB np = new FavouriteDB();
+                Console.WriteLine($"🛠 Отримано запит на редагування: chatId={chatId}, placeId={placeId}, newComment={newComment}");
                 bool success = await np.UpdateCommentAsync(chatId, placeId, newComment);
 
                 Console.WriteLine($"🔍 Результат оновлення коментаря: {success}");
