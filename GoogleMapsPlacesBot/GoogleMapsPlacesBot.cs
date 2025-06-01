@@ -191,37 +191,49 @@ namespace Google_Maps_Places_Bot
                 string photoUri = await apiClient.GetPhotoUriAsync(place.place_id);
                 PlaceInfo placeDetails = apiClient.GetInfoAsync(place.place_id).Result;
                 var latestReview = placeDetails.result.reviews?.OrderByDescending(r => r.time).FirstOrDefault();
-                string reviewText = latestReview != null ?
-                    $"💬 <b>Останній відгук</b> ({latestReview.rating}⭐ від {latestReview.author_name}):\n\"{latestReview.text}\"\n" :
-                    "❌ Відгуки відсутні.\n";
+                string basicInfo = $"📍 <b>{placeDetails.result.name}</b>\n" +
+                   $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})";
 
-                string text = $"📍 <b>{placeDetails.result.name}</b>\n" +
-              $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})\n" +
-              $"{reviewText}\n" +
-              $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
-              $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
-              $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
-              $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік: \n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}\n" : "❌ Графік роботи недоступний.\n")}" +
-              $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
+                var reviewText = placeDetails.result.reviews?.OrderByDescending(r => r.time).FirstOrDefault();
+                string reviewInfo = reviewText != null
+                    ? $"💬 <b>Останній відгук</b> ({reviewText.rating}⭐ від {reviewText.author_name}):\n\"{reviewText.text}\""
+                    : "❌ Відгуки відсутні.";
 
+                string addressInfo = $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
+                                     $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
+                                     $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
+                                     $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>";
 
-
-
-                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-
+                // **Перевіряємо, чи є фото * *
                 if (!string.IsNullOrEmpty(photoUri))
                 {
-                    await botClient.SendPhotoAsync(
-                        chatId,
-                        photo: photoUri,
-                        caption: text,
-                        parseMode: ParseMode.Html
-                    );
+                    // **Перевіряємо довжину тексту**
+                    if ((basicInfo.Length + reviewInfo.Length + addressInfo.Length) <= 1024)
+                    {
+                        await botClient.SendPhotoAsync(chatId, photo: photoUri, caption: basicInfo + "\n\n" + reviewInfo + "\n\n" + addressInfo, parseMode: ParseMode.Html);
+                    }
+                    else
+                    {
+                        await botClient.SendPhotoAsync(chatId, photo: photoUri, caption: basicInfo, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, reviewInfo, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, addressInfo, parseMode: ParseMode.Html);
+                    }
                 }
                 else
                 {
-                    await botClient.SendTextMessageAsync(chatId, text, parseMode: ParseMode.Html);
+                    // **Якщо фото немає, надсилаємо текст окремо**
+                    if ((basicInfo.Length + reviewInfo.Length + addressInfo.Length) <= 4096) // Загальний ліміт на текст у Telegram
+                    {
+                        await botClient.SendTextMessageAsync(chatId, basicInfo + "\n\n" + reviewInfo + "\n\n" + addressInfo, parseMode: ParseMode.Html);
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(chatId, basicInfo, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, reviewInfo, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, addressInfo, parseMode: ParseMode.Html);
+                    }
                 }
+
             }
             else if (callbackQuery.Data == "next")
             {
@@ -371,13 +383,12 @@ namespace Google_Maps_Places_Bot
                 var favorites = await apiClient.GetFavouritesAsync(chatId.ToString());
 
                 var menu = new ReplyKeyboardMarkup(new[]
-                    {
-                        new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-                    })
+                {
+    new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+})
                 {
                     ResizeKeyboard = true
                 };
-
 
                 if (favorites == null || !favorites.Any())
                 {
@@ -387,47 +398,48 @@ namespace Google_Maps_Places_Bot
                         replyMarkup: menu);
                     return;
                 }
-                Console.WriteLine("Перевіряємо улюблені місця перед виводом:");
+
                 foreach (var fav in favorites)
                 {
-                    Console.WriteLine($"Name: {fav.Name}, PlaceID: {fav.PlaceID}");
-                }
-                foreach (var fav in favorites)
-                {
-                    var placeDetails = await apiClient.GetInfoAsync(fav.PlaceID); // PlaceId тепер у FavouritePlaceModel
+                    var placeDetails = await apiClient.GetInfoAsync(fav.PlaceID);
                     string photoUri = await apiClient.GetPhotoUriAsync(fav.PlaceID);
 
-                    string text = $"📍 <b>{fav.Name}</b>\n" +
-                                  $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})\n" +
-                                  $"💬 <b>Твій коментар:</b> \"{fav.Comment}\"\n" +
-                                  $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
-                                  $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
-                                  $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
-                                  $"{(placeDetails.result.opening_hours?.weekday_text != null ? $"🕒 Графік:\n{string.Join("\n\t", placeDetails.result.opening_hours.weekday_text)}\n" : "❌ Графік роботи недоступний.\n")}" +
-                                  $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
+                    string basicInfo = $"📍 <b>{fav.Name}</b>\n" +
+                                       $"⭐ Рейтинг: {placeDetails.result.rating} (відгуків: {placeDetails.result.user_ratings_total})";
+
+                    string reviewInfo = !string.IsNullOrEmpty(fav.Comment)
+                        ? $"💬 <b>Твій коментар:</b> \"{fav.Comment}\""
+                        : "❌ Коментар відсутній.";
+
+                    string addressInfo = $"📍 Адреса: {placeDetails.result.formatted_address}\n" +
+                                         $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
+                                         $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
+                                         $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
+
                     Console.WriteLine($"Генеруємо кнопки: delete_{fav.PlaceID}");
-                    InlineKeyboardMarkup markup = new(
-                    new[]
-                        {
-                        new []
-                        {
-                            InlineKeyboardButton.WithCallbackData("✏ Редагувати коментар", $"edit_{fav.PlaceID}"),
-                            InlineKeyboardButton.WithCallbackData("❌ Видалити", $"delete_{fav.PlaceID}")
-                        }
-                    });
-                    if (!string.IsNullOrEmpty(photoUri))
+                    InlineKeyboardMarkup markup = new(new[]
                     {
-                        await botClient.SendPhotoAsync(
-                            chatId,
-                            photo: photoUri,
-                            caption: text,
-                            replyMarkup: markup,
-                            parseMode: ParseMode.Html
-                        );
+                        new [] { 
+                            InlineKeyboardButton.WithCallbackData("✏ Редагувати коментар", $"edit_{fav.PlaceID}"),
+                            InlineKeyboardButton.WithCallbackData("❌ Видалити", $"delete_{fav.PlaceID}") }
+                        });
+
+                    // **Перевірка довжини тексту перед відправкою**
+                    if ((basicInfo.Length + reviewInfo.Length + addressInfo.Length) <= 1024 && !string.IsNullOrEmpty(photoUri))
+                    {
+                        await botClient.SendPhotoAsync(chatId, photo: photoUri, caption: $"{basicInfo}\n\n{reviewInfo}\n\n{addressInfo}",
+                                                       replyMarkup: markup, parseMode: ParseMode.Html);
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(chatId, text, replyMarkup: markup, parseMode: ParseMode.Html);
+                        // **Відправка частинами**
+                        if (!string.IsNullOrEmpty(photoUri))
+                            await botClient.SendPhotoAsync(chatId, photo: photoUri, caption: basicInfo, replyMarkup: markup, parseMode: ParseMode.Html);
+                        else
+                            await botClient.SendTextMessageAsync(chatId, basicInfo, replyMarkup: markup, parseMode: ParseMode.Html);
+
+                        await botClient.SendTextMessageAsync(chatId, reviewInfo, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, addressInfo, parseMode: ParseMode.Html);
                     }
                 }
 
