@@ -66,6 +66,24 @@ namespace GoggleMapsPlaces.DataBase
         }
         public async Task<bool> UpdateCommentAsync(string chatId, string placeId, string newComment)
         {
+            var checkSql = "SELECT COUNT(*) FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id AND \"placeid\" = @place_id";
+            await using var checkCmd = new NpgsqlCommand(checkSql, _connection);
+
+            checkCmd.Parameters.AddWithValue("@chat_id", chatId);
+            checkCmd.Parameters.AddWithValue("@place_id", placeId);
+
+            if (_connection.State != ConnectionState.Open)
+                await _connection.OpenAsync();
+
+            int count = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+            Console.WriteLine($"🔍 Запис існує у БД: {count > 0}");
+
+            if (count == 0)
+            {
+                Console.WriteLine($"❌ Місце {placeId} не знайдено для користувача {chatId}");
+                return false;
+            }
+
             var sql = "UPDATE public.\"favouriteplaces\" SET \"comment\" = @comment WHERE \"chatid\" = @chat_id AND \"placeid\" = @place_id";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
