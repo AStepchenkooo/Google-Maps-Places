@@ -21,6 +21,7 @@ namespace Google_Maps_Places_Bot
         private Dictionary<long, string> _waitingForPlaceId = new();
         private Dictionary<long, string> _waitingForType = new();
         private static Dictionary<string, PlaceInfo> _placesCache = new();
+        private static HashSet<long> _waitingForRoute = new();
 
         public async Task Start()
         {
@@ -74,9 +75,18 @@ namespace Google_Maps_Places_Bot
                 var lat = message.Location.Latitude;
                 var lon = message.Location.Longitude;
 
-                _locationCache[message.Chat.Id] = (lat, lon);
+                _locationCache[message.Chat.Id] = (lat, lon);  // Перезаписуємо локацію
+
+                if (_waitingForRoute.Contains(message.Chat.Id))
+                {
+                    _waitingForRoute.Remove(message.Chat.Id);
+                    await GenerateRouteAfterLocation(message.Chat.Id);
+                    return;
+                }
+
+                // **Якщо маршрут не потрібен, показуємо головне меню**
                 ReplyKeyboardMarkup mainMenu = new(new[]
-   {
+                {
         new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
     })
                 {
@@ -84,30 +94,11 @@ namespace Google_Maps_Places_Bot
                     OneTimeKeyboard = false
                 };
 
-                await botClient.SendTextMessageAsync(
-                    message.Chat.Id,
-                    "✅ Геолокацію отримано! Тепер обери наступну дію:",
-                    replyMarkup: mainMenu
-                );
+                await botClient.SendTextMessageAsync(message.Chat.Id, "✅ Геолокацію отримано! Тепер обери наступну дію:", replyMarkup: mainMenu);
 
-
-                var markup = new InlineKeyboardMarkup(new[]
-                    {
-                new [] { InlineKeyboardButton.WithCallbackData("☕ Кафе", "search_cafe"), InlineKeyboardButton.WithCallbackData("💊 Аптека", "search_pharmacy") },
-                new [] { InlineKeyboardButton.WithCallbackData("🌳 Парк", "search_park"), InlineKeyboardButton.WithCallbackData("🎭 Музей", "search_museum") },
-                new [] { InlineKeyboardButton.WithCallbackData("🛍 Магазин", "search_store"), InlineKeyboardButton.WithCallbackData("🏥 Лікарня", "search_hospital") },
-                new [] { InlineKeyboardButton.WithCallbackData("🏋️‍♂️ Спортзал", "search_gym"), InlineKeyboardButton.WithCallbackData("📮 Пошта", "search_post_office") },
-                new [] { InlineKeyboardButton.WithCallbackData("🔌 Електроніка", "search_electronics_store"), InlineKeyboardButton.WithCallbackData("🎬 Кінотеатр", "search_movie_theater") }
-
-                    });
-
-                await botClient.SendTextMessageAsync(
-                    message.Chat.Id,
-                    "🔍 Обери тип місця:",
-                    replyMarkup: markup
-                );
-
+                await SendPlaceTypeSelection(message.Chat.Id);  // Вибір категорії пошуку місць
             }
+
             if (_waitingForRadius.ContainsKey(message.Chat.Id) && _waitingForRadius[message.Chat.Id])
             {
                 if (int.TryParse(message.Text, out int radius))
@@ -376,20 +367,12 @@ namespace Google_Maps_Places_Bot
             {
                 string placeId = callbackQuery.Data.Substring(16);
 
+                // **Завжди запитуємо геолокацію**
+                _waitingForRoute.Add(chatId);
+                _waitingForPlaceId[chatId] = placeId;  // Тимчасово зберігаємо placeId
+
                 await RequestLocation(chatId);
-                var userLocation = _locationCache[chatId];  // Використовуємо останню локацію
-                string origin = $"{userLocation.lat},{userLocation.lon}";
-                string mapsUrl = GenerateRouteUrl(placeId, origin);
-                ReplyKeyboardMarkup mainMenu = new(new[]
-                {
-                    new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-                })
-                {
-                    ResizeKeyboard = true,
-                    OneTimeKeyboard = false
-                };
-                await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", replyMarkup: mainMenu, parseMode: ParseMode.Html);
-                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                return;
             }
             else if (callbackQuery.Data.StartsWith("route_"))
             {
@@ -411,9 +394,24 @@ namespace Google_Maps_Places_Bot
             string destination = $"{placeDetails.result.geometry.location.lat},{placeDetails.result.geometry.location.lng}";
 
             return $"https://www.google.com/maps/dir/{origin}/{destination}";
-
         }
+        private async Task GenerateRouteAfterLocation(long chatId)
+        {
+            if (!_waitingForPlaceId.ContainsKey(chatId)) return;
 
+            string placeId = _waitingForPlaceId[chatId];
+            _waitingForPlaceId.Remove(chatId);
+            _waitingForRoute.Remove(chatId); // Видаляємо маршрутне очікування
+
+            var userLocation = _locationCache[chatId];
+            string origin = $"{userLocation.lat},{userLocation.lon}";
+
+            string mapsUrl = GenerateRouteUrl(placeId, origin);
+
+            await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", parseMode: ParseMode.Html);
+
+            await MenuKeyboard(chatId);  // Повертаємо користувача в головне меню
+        }
         private async Task RequestLocation(Message message)
         {
             ReplyKeyboardMarkup locationKeyboard = new
@@ -463,6 +461,34 @@ namespace Google_Maps_Places_Bot
             };
             await botClient.SendTextMessageAsync(message.Chat.Id, "Виберіть функцію", replyMarkup: replyKeyboardMarkup);
             return;
+        }
+        private async Task MenuKeyboard(long chatID)
+        {
+            ReplyKeyboardMarkup replyKeyboardMarkup = new
+                (
+                    new[]
+                    {
+                        new KeyboardButton[]{"Пошук місць поруч", "Вподобані місця"}
+                    }
+                )
+            {
+                ResizeKeyboard = true
+            };
+            await botClient.SendTextMessageAsync(chatID, "Виберіть функцію", replyMarkup: replyKeyboardMarkup);
+            return;
+        }
+        private async Task SendPlaceTypeSelection(long chatId)
+        {
+            var markup = new InlineKeyboardMarkup(new[]
+            {
+        new [] { InlineKeyboardButton.WithCallbackData("☕ Кафе", "search_cafe"), InlineKeyboardButton.WithCallbackData("💊 Аптека", "search_pharmacy") },
+        new [] { InlineKeyboardButton.WithCallbackData("🌳 Парк", "search_park"), InlineKeyboardButton.WithCallbackData("🎭 Музей", "search_museum") },
+        new [] { InlineKeyboardButton.WithCallbackData("🛍 Магазин", "search_store"), InlineKeyboardButton.WithCallbackData("🏥 Лікарня", "search_hospital") },
+        new [] { InlineKeyboardButton.WithCallbackData("🏋️‍♂️ Спортзал", "search_gym"), InlineKeyboardButton.WithCallbackData("📮 Пошта", "search_post_office") },
+        new [] { InlineKeyboardButton.WithCallbackData("🔌 Електроніка", "search_electronics_store"), InlineKeyboardButton.WithCallbackData("🎬 Кінотеатр", "search_movie_theater") }
+    });
+
+            await botClient.SendTextMessageAsync(chatId, "🔍 Обери тип місця:", replyMarkup: markup);
         }
         private async Task ShowFavoritesMenu(long chatId)
         {
