@@ -1,4 +1,4 @@
-﻿namespace Bot.NearbyPlaces
+﻿namespace Google_Maps_Places_Bot
 {
 
     public class NearbyPlaces

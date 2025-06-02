@@ -1,5 +1,4 @@
-﻿using Bot.NearbyPlaces;
-using GoggleMapsPlaces.Models.PlaceInfo;
+﻿using Google_Maps_Places_Bot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -21,6 +20,7 @@ namespace Google_Maps_Places_Bot
         private Dictionary<long, Result> _waitingForComment = new();
         private Dictionary<long, string> _waitingForPlaceId = new();
         private Dictionary<long, string> _waitingForType = new();
+        private static Dictionary<string, PlaceInfo> _placesCache = new();
 
         public async Task Start()
         {
@@ -224,7 +224,11 @@ namespace Google_Maps_Places_Bot
                                      $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
                                      $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
                                      $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>";
-
+                _placesCache.Add(place.place_id, placeDetails);
+                InlineKeyboardMarkup detailsMarkup = new(new[]
+                    {
+                        new [] { InlineKeyboardButton.WithCallbackData("🗺 Отримати маршрут", $"route_{place.place_id}") },
+                    });
                 // **Перевіряємо, чи є фото * *
                 if (!string.IsNullOrEmpty(photoUri))
                 {
@@ -368,7 +372,25 @@ namespace Google_Maps_Places_Bot
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
 
             }
+            if (callbackQuery.Data.StartsWith("route_"))
+            {
+                string placeId = callbackQuery.Data.Substring(6);
+                var userLocation = _locationCache[chatId];  // Використовуємо останню локацію
+                string origin = $"{userLocation.lat},{userLocation.lon}";
+                string mapsUrl = GenerateRouteUrl(placeId, origin);
 
+                await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", parseMode: ParseMode.Html);
+            }
+        }
+
+        private string GenerateRouteUrl(string placeId, string origin)
+        {
+            if (!_placesCache.ContainsKey(placeId)) return "❌ Дані місця не знайдені.";
+
+            var placeDetails = _placesCache[placeId];
+            string destination = $"{placeDetails.result.geometry.location.lat},{placeDetails.result.geometry.location.lng}";
+
+            return $"https://www.google.com/maps/dir/{origin}/{destination}";
 
         }
 
@@ -451,6 +473,7 @@ namespace Google_Maps_Places_Bot
                     Console.WriteLine($"Генеруємо кнопки: delete_{fav.PlaceID}");
                     InlineKeyboardMarkup markup = new(new[]
                     {
+                        new [] { InlineKeyboardButton.WithCallbackData("🗺 Отримати маршрут", $"route_favorites_{fav.PlaceID}") },
                         new [] { 
                             InlineKeyboardButton.WithCallbackData("✏ Редагувати коментар", $"edit_{fav.PlaceID}"),
                             InlineKeyboardButton.WithCallbackData("❌ Видалити", $"delete_{fav.PlaceID}") }

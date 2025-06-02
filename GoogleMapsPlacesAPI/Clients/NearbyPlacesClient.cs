@@ -1,6 +1,6 @@
 ﻿using GoggleMapsPlaces.Models.NearbyPlaces;
-using Newtonsoft.Json;
 using GoggleMapsPlaces.Models.PlaceInfo;
+using Newtonsoft.Json;
 
 namespace GoggleMapsPlaces.Clients
 {
@@ -50,7 +50,7 @@ namespace GoggleMapsPlaces.Clients
                 Method = HttpMethod.Get,
                 RequestUri = new Uri($"https://{_apihost}/maps/api/place/details/json?place_id={id}&region=uk&fields=all&language=uk&reviews_no_translations=true"),
                 Headers =
-                {           
+                {
                     { "x-rapidapi-key", _apikey },
                     { "x-rapidapi-host", _apihost }
                 },

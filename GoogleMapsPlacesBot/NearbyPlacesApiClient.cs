@@ -1,13 +1,12 @@
-﻿using Bot.NearbyPlaces;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GoggleMapsPlaces.Models.PlaceInfo;
 using Goggle_Maps_Places.Models.NearbyPlaces;
+using Google_Maps_Places_Bot.Models;
 
 namespace Google_Maps_Places_Bot
 {

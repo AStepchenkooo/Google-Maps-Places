@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Goggle_Maps_Places.Models.NearbyPlaces
+namespace Google_Maps_Places_Bot
 {
     public class EditFavouriteRequest
     {
