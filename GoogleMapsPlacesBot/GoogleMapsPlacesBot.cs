@@ -235,13 +235,13 @@ namespace Google_Maps_Places_Bot
                     // **Перевіряємо довжину тексту**
                     if ((basicInfo.Length + reviewInfo.Length + addressInfo.Length) <= 1024)
                     {
-                        await botClient.SendPhotoAsync(chatId, photo: photoUri, caption: basicInfo + "\n\n" + reviewInfo + "\n\n" + addressInfo, parseMode: ParseMode.Html);
+                        await botClient.SendPhotoAsync(chatId, photo: photoUri, caption: basicInfo + "\n\n" + reviewInfo + "\n\n" + addressInfo, replyMarkup: detailsMarkup, parseMode: ParseMode.Html);
                     }
                     else
                     {
                         await botClient.SendPhotoAsync(chatId, photo: photoUri, caption: basicInfo, parseMode: ParseMode.Html);
                         await botClient.SendTextMessageAsync(chatId, reviewInfo, parseMode: ParseMode.Html);
-                        await botClient.SendTextMessageAsync(chatId, addressInfo, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, addressInfo, replyMarkup: detailsMarkup, parseMode: ParseMode.Html);
                     }
                 }
                 else
@@ -249,13 +249,13 @@ namespace Google_Maps_Places_Bot
                     // **Якщо фото немає, надсилаємо текст окремо**
                     if ((basicInfo.Length + reviewInfo.Length + addressInfo.Length) <= 4096) // Загальний ліміт на текст у Telegram
                     {
-                        await botClient.SendTextMessageAsync(chatId, basicInfo + "\n\n" + reviewInfo + "\n\n" + addressInfo, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, basicInfo + "\n\n" + reviewInfo + "\n\n" + addressInfo, replyMarkup: detailsMarkup, parseMode: ParseMode.Html);
                     }
                     else
                     {
                         await botClient.SendTextMessageAsync(chatId, basicInfo, parseMode: ParseMode.Html);
                         await botClient.SendTextMessageAsync(chatId, reviewInfo, parseMode: ParseMode.Html);
-                        await botClient.SendTextMessageAsync(chatId, addressInfo, parseMode: ParseMode.Html);
+                        await botClient.SendTextMessageAsync(chatId, addressInfo, replyMarkup: detailsMarkup, parseMode: ParseMode.Html);
                     }
                 }
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
