@@ -75,13 +75,30 @@ namespace Google_Maps_Places_Bot
                 var lon = message.Location.Longitude;
 
                 _locationCache[message.Chat.Id] = (lat, lon);
+                ReplyKeyboardMarkup mainMenu = new(new[]
+   {
+        new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+    })
+                {
+                    ResizeKeyboard = true,
+                    OneTimeKeyboard = false
+                };
+
+                await botClient.SendTextMessageAsync(
+                    message.Chat.Id,
+                    "✅ Геолокацію отримано! Тепер обери наступну дію:",
+                    replyMarkup: mainMenu
+                );
+
 
                 var markup = new InlineKeyboardMarkup(new[]
                     {
-        new [] { InlineKeyboardButton.WithCallbackData("☕ Кафе", "search_cafe"), InlineKeyboardButton.WithCallbackData("💊 Аптека", "search_pharmacy") },
-        new [] { InlineKeyboardButton.WithCallbackData("🌳 Парк", "search_park"), InlineKeyboardButton.WithCallbackData("🎭 Музей", "search_museum") },
-        new [] { InlineKeyboardButton.WithCallbackData("🛍 Магазин", "search_store"), InlineKeyboardButton.WithCallbackData("🏥 Лікарня", "search_hospital") },
-        new [] { InlineKeyboardButton.WithCallbackData("🚇 Станція метро", "search_subway_station"), InlineKeyboardButton.WithCallbackData("✈ Аеропорт", "search_airport") }
+                new [] { InlineKeyboardButton.WithCallbackData("☕ Кафе", "search_cafe"), InlineKeyboardButton.WithCallbackData("💊 Аптека", "search_pharmacy") },
+                new [] { InlineKeyboardButton.WithCallbackData("🌳 Парк", "search_park"), InlineKeyboardButton.WithCallbackData("🎭 Музей", "search_museum") },
+                new [] { InlineKeyboardButton.WithCallbackData("🛍 Магазин", "search_store"), InlineKeyboardButton.WithCallbackData("🏥 Лікарня", "search_hospital") },
+                new [] { InlineKeyboardButton.WithCallbackData("🏋️‍♂️ Спортзал", "search_gym"), InlineKeyboardButton.WithCallbackData("📮 Пошта", "search_post_office") },
+                new [] { InlineKeyboardButton.WithCallbackData("🔌 Електроніка", "search_electronics_store"), InlineKeyboardButton.WithCallbackData("🎬 Кінотеатр", "search_movie_theater") }
+
                     });
 
                 await botClient.SendTextMessageAsync(
