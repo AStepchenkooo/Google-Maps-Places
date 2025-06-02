@@ -372,21 +372,11 @@ namespace Google_Maps_Places_Bot
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
 
             }
-            if (callbackQuery.Data.StartsWith("route_"))
-            {
-                string placeId = callbackQuery.Data.Substring(6);
-                var userLocation = _locationCache[chatId];  // Використовуємо останню локацію
-                string origin = $"{userLocation.lat},{userLocation.lon}";
-                string mapsUrl = GenerateRouteUrl(placeId, origin);
-
-                await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", parseMode: ParseMode.Html);
-                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-            }
             if (callbackQuery.Data.StartsWith("route_favorites_"))
             {
                 string placeId = callbackQuery.Data.Substring(16);
 
-                RequestLocation(chatId);
+                await RequestLocation(chatId);
                 var userLocation = _locationCache[chatId];  // Використовуємо останню локацію
                 string origin = $"{userLocation.lat},{userLocation.lon}";
                 string mapsUrl = GenerateRouteUrl(placeId, origin);
@@ -399,6 +389,16 @@ namespace Google_Maps_Places_Bot
                     OneTimeKeyboard = false
                 };
                 await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", replyMarkup: mainMenu, parseMode: ParseMode.Html);
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+            }
+            else if (callbackQuery.Data.StartsWith("route_"))
+            {
+                string placeId = callbackQuery.Data.Substring(6);
+                var userLocation = _locationCache[chatId];  // Використовуємо останню локацію
+                string origin = $"{userLocation.lat},{userLocation.lon}";
+                string mapsUrl = GenerateRouteUrl(placeId, origin);
+
+                await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", parseMode: ParseMode.Html);
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
             }
         }
