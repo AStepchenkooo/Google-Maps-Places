@@ -372,6 +372,7 @@ namespace Google_Maps_Places_Bot
                 _waitingForPlaceId[chatId] = placeId;  // Тимчасово зберігаємо placeId
 
                 await RequestLocation(chatId);
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
                 return;
             }
             else if (callbackQuery.Data.StartsWith("route_"))
@@ -408,8 +409,9 @@ namespace Google_Maps_Places_Bot
 
             string mapsUrl = GenerateRouteUrl(placeId, origin);
 
-            await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", parseMode: ParseMode.Html);
+            Console.WriteLine($"DEBUG: {mapsUrl}");
 
+            await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", parseMode: ParseMode.Html);
             await MenuKeyboard(chatId);  // Повертаємо користувача в головне меню
         }
         private async Task RequestLocation(Message message)
