@@ -198,7 +198,11 @@ namespace Google_Maps_Places_Bot
 
             if (callbackQuery.Data.StartsWith("details_"))
             {
-                if (!_userSearchResults.ContainsKey(chatId)) return;
+                if (!_userSearchResults.ContainsKey(chatId))
+                {
+                    await botClient.SendTextMessageAsync(chatId, "❌ Дані для цього місця вже недоступні.");
+                    return;
+                }
 
                 var index = int.Parse(callbackQuery.Data.Split('_')[1]);
                 var place = _userSearchResults[chatId][index];
@@ -250,6 +254,7 @@ namespace Google_Maps_Places_Bot
                         await botClient.SendTextMessageAsync(chatId, addressInfo, parseMode: ParseMode.Html);
                     }
                 }
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
 
             }
             else if (callbackQuery.Data == "next")
@@ -312,6 +317,7 @@ namespace Google_Maps_Places_Bot
             }
             if (callbackQuery.Data == "skip_comment")
             {
+
                 if (_waitingForComment.TryGetValue(chatId, out var place))
                 {
                     var addToFavouriteAsync = new NearbyPlacesApiClient();
@@ -321,6 +327,7 @@ namespace Google_Maps_Places_Bot
                 }
 
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+
             }
             if (callbackQuery.Data.StartsWith("edit_"))
             {
@@ -333,6 +340,8 @@ namespace Google_Maps_Places_Bot
                 );
 
                 _waitingForPlaceId[chatId] = placeId;
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+
             }
             if (callbackQuery.Data.StartsWith("delete_"))
             {
@@ -346,14 +355,18 @@ namespace Google_Maps_Places_Bot
                     await botClient.SendTextMessageAsync(chatId, "✅ Місце видалено з улюблених!");
                 else
                     await botClient.SendTextMessageAsync(chatId, "❌ Помилка при видаленні!");
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+
             }
             if (callbackQuery.Data.StartsWith("search_"))
             {
-                var placeType = callbackQuery.Data.Split('_')[1]; // Отримуємо тип місця
+                var placeType = callbackQuery.Data.Substring(7); // Отримуємо тип місця
                 _waitingForType[chatId] = placeType; // Зберігаємо вибір
 
                 await botClient.SendTextMessageAsync(chatId, "📝 Введіть радіус пошуку в метрах (наприклад: 3000):");
                 _waitingForRadius[chatId] = true; // Чекаємо введення
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+
             }
 
 
@@ -396,6 +409,8 @@ namespace Google_Maps_Places_Bot
         {
             try
             {
+                _userSearchResults.Remove(chatId);
+                _userSearchIndex.Remove(chatId);
                 var apiClient = new NearbyPlacesApiClient();
                 var favorites = await apiClient.GetFavouritesAsync(chatId.ToString());
 
