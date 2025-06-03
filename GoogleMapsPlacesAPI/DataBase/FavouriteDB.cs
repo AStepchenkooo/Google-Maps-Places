@@ -14,7 +14,7 @@ namespace GoggleMapsPlaces.DataBase
         {
             var placeTypesJson = JsonConvert.SerializeObject(placeTypes); // **Серіалізуємо масив у JSON**
 
-            var sql = "INSERT INTO public.\"favouriteplaces\"(\"name\", \"placeid\", \"comment\", \"chatid\", \"placeType\") " +
+            var sql = "INSERT INTO public.\"favouriteplaces\"(\"name\", \"placeid\", \"comment\", \"chatid\", \"placetype\") " +
                       "VALUES (@Name, @PlaceID, @Comment, @ChatID, @PlaceType)";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
@@ -32,7 +32,7 @@ namespace GoggleMapsPlaces.DataBase
         public async Task<List<FavouritePlaceModel>> GetFavouritePlacesAsync(string chatID)
         {
             var places = new List<FavouritePlaceModel>();
-            var sql = "SELECT \"name\", \"comment\", \"placeid\", \"placeType\" FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id";
+            var sql = "SELECT \"name\", \"comment\", \"placeid\", \"placetype\" FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
 
@@ -45,7 +45,7 @@ namespace GoggleMapsPlaces.DataBase
             while (await reader.ReadAsync())
             {
                 var placeId = reader["placeid"].ToString();
-                var placeTypeJson = reader["placeType"].ToString();
+                var placeTypeJson = reader["placetype"].ToString();
                 var placeTypes = JsonConvert.DeserializeObject<List<string>>(placeTypeJson) ?? new List<string>();
 
                 Console.WriteLine($"Отримано PlaceId: {placeId}, Типи місця: {string.Join(", ", placeTypes)}");
