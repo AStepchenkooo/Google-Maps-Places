@@ -613,7 +613,8 @@ namespace Google_Maps_Places_Bot
                                          $"📞 Телефон: {placeDetails.result.formatted_phone_number}\n" +
                                          $"{(placeDetails.result.website != null ? $"🌐 <a href=\"{placeDetails.result.website}\">Сайт</a>\n" : "")}" +
                                          $"🔗 <a href=\"{placeDetails.result.url}\">Google Maps</a>\n";
-                    _placesCache.Add(fav.PlaceID, placeDetails);
+                    if (!_placesCache.ContainsKey(fav.PlaceID))
+                        _placesCache.Add(fav.PlaceID, placeDetails);
                     Console.WriteLine($"Генеруємо кнопки: delete_{fav.PlaceID}");
                     InlineKeyboardMarkup markup = new(new[]
                     {
