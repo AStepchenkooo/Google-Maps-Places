@@ -89,7 +89,7 @@ namespace Google_Maps_Places_Bot
 
                 if (_pendingRecommendationsRequests.Contains(message.Chat.Id))
                 {
-                    // виклик пошуку рекомендацій з уже точно оновленою локацією, перевірку можна уникнути
+                    GenerateRecommendationsAfterLocation(message.Chat.Id);
                     _pendingRecommendationsRequests.Remove(message.Chat.Id);
                     return;
                 }
