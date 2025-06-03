@@ -61,16 +61,21 @@ namespace Google_Maps_Places_Bot
                 await MenuKeyboard(message);
                 return;
             }
-            if (message.Text == "Пошук місць поруч")
+            if (message.Text == "🏠 Пошук місць поруч")
             {
                 await RequestLocation(message);
                 return;
             }
-            if (message.Text == "Вподобані місця")
+            if (message.Text == "⭐ Вподобані місця")
             {
                 await ShowFavoritesMenu(message.Chat.Id);
                 return;
             }
+            else if (message.Text == "📍 Отримати рекомендації")  
+            {
+                await GetPersonalizedRecommendations(message.Chat.Id);
+            }
+
             if (message.Type == MessageType.Location)
             {
                 var lat = message.Location.Latitude;
@@ -86,14 +91,15 @@ namespace Google_Maps_Places_Bot
                 }
 
                 // **Якщо маршрут не потрібен, показуємо головне меню**
-                ReplyKeyboardMarkup mainMenu = new(new[]
+                var mainMenu = new ReplyKeyboardMarkup(new[]
+{
+    new KeyboardButton[] { "🏠 Пошук місць поруч", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
+})
                 {
-        new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-    })
-                {
-                    ResizeKeyboard = true,
-                    OneTimeKeyboard = false
+                    ResizeKeyboard = true
                 };
+
 
                 await botClient.SendTextMessageAsync(message.Chat.Id, "✅ Геолокацію отримано! Тепер обери наступну дію:", replyMarkup: mainMenu);
 
@@ -374,9 +380,8 @@ namespace Google_Maps_Places_Bot
             {
                 string placeId = callbackQuery.Data.Substring(16);
 
-                // **Завжди запитуємо геолокацію**
                 _waitingForRoute.Add(chatId);
-                _waitingForPlaceId[chatId] = placeId;  // Тимчасово зберігаємо placeId
+                _waitingForPlaceId[chatId] = placeId;  
 
                 await RequestLocation(chatId);
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
@@ -458,33 +463,90 @@ namespace Google_Maps_Places_Bot
 
         private async Task MenuKeyboard(Message message)
         {
-            ReplyKeyboardMarkup replyKeyboardMarkup = new
-                (
-                    new[]
-                    {
-                        new KeyboardButton[]{"Пошук місць поруч", "Вподобані місця"}
-                    }
-                )
+            var mainMenu = new ReplyKeyboardMarkup(new[]
+{
+    new KeyboardButton[] { "🏠 Головне меню", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
+})
             {
                 ResizeKeyboard = true
             };
-            await botClient.SendTextMessageAsync(message.Chat.Id, "Виберіть функцію", replyMarkup: replyKeyboardMarkup);
+            await botClient.SendTextMessageAsync(message.Chat.Id, "Виберіть функцію", replyMarkup: mainMenu);
             return;
         }
         private async Task MenuKeyboard(long chatID)
         {
-            ReplyKeyboardMarkup replyKeyboardMarkup = new
-                (
-                    new[]
-                    {
-                        new KeyboardButton[]{"Пошук місць поруч", "Вподобані місця"}
-                    }
-                )
+            var mainMenu = new ReplyKeyboardMarkup(new[]
+{
+    new KeyboardButton[] { "🏠 Головне меню", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
+})
             {
                 ResizeKeyboard = true
             };
-            await botClient.SendTextMessageAsync(chatID, "Виберіть функцію", replyMarkup: replyKeyboardMarkup);
+            await botClient.SendTextMessageAsync(chatID, "Виберіть функцію", replyMarkup: mainMenu);
             return;
+        }
+        public async Task<List<Result>> GetPersonalizedRecommendations(long chatId)
+        {
+            await RequestLocation(chatId);            
+            double latitude = _locationCache[chatId].lat;
+            double longitude = _locationCache[chatId].lon;
+
+
+            var apiClient = new NearbyPlacesApiClient();
+            
+            var favoritePlaces = await apiClient.GetFavouritesAsync(chatId.ToString());
+
+            List<string> preferredTypes = new();
+
+            foreach (var place in favoritePlaces)
+            {
+                var filteredTypes = place.PlaceTypes
+                                         .Where(t => t != "point_of_interest" && t != "establishment")
+                                         .ToList();
+                preferredTypes.AddRange(filteredTypes);
+            }
+
+            var popularTypes = preferredTypes
+                                .GroupBy(x => x)
+                                .OrderByDescending(g => g.Count())
+                                .Take(3)
+                                .Select(g => g.Key)
+                                .ToList();
+
+            List<Result> recommendations = new();
+
+            foreach (var type in popularTypes)
+            {
+                var searchResults = await apiClient.GetNearbyPlacesAsync(latitude,longitude, 1500, "uk" , type);
+                recommendations.AddRange(searchResults.results.Take(2)); 
+            }
+
+            return recommendations;
+        }
+        public async Task SendRecommendations(long chatId, List<Result> recommendations)
+        {
+            if (recommendations == null || recommendations.Count == 0)
+            {
+                await botClient.SendTextMessageAsync(chatId, "❌ Нічого не знайдено.");
+                return;
+            }
+
+            _userSearchResults[chatId] = recommendations.ToList();  // **Зберігаємо список**
+            _userSearchIndex[chatId] = 0;  // **Починаємо з першого місця**
+
+            var place = recommendations[0];  // **Беремо перше місце**
+            var placeText = $"📍 <b>{place.name}</b>\n⭐ Рейтинг: {place.rating}\n📍 Адреса: {place.vicinity}";
+
+            InlineKeyboardMarkup markup = new(
+                new[]
+                {
+            new [] { InlineKeyboardButton.WithCallbackData("Детальніше", $"details_0"), InlineKeyboardButton.WithCallbackData("Наступне", "next") },
+            new [] { InlineKeyboardButton.WithCallbackData("❤️ Додати до улюблених", $"addfav_0") }
+                });
+
+            await botClient.SendTextMessageAsync(chatId, placeText, replyMarkup: markup, parseMode: ParseMode.Html);
         }
         private async Task SendPlaceTypeSelection(long chatId)
         {
@@ -510,8 +572,9 @@ namespace Google_Maps_Places_Bot
                 var favorites = await apiClient.GetFavouritesAsync(chatId.ToString());
 
                 var menu = new ReplyKeyboardMarkup(new[]
-                {
-    new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
+{
+    new KeyboardButton[] { "🏠 Головне меню", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
 })
                 {
                     ResizeKeyboard = true
@@ -579,10 +642,13 @@ namespace Google_Maps_Places_Bot
                     chatId,
                     "❌ Сталася помилка при отриманні списку улюблених місць",
                     replyMarkup: new ReplyKeyboardMarkup(new[]
+{
+    new KeyboardButton[] { "🏠 Головне меню", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
+})
                     {
-                new KeyboardButton[] { "Пошук місць поруч", "Вподобані місця" }
-                    })
-                    { ResizeKeyboard = true });
+                        ResizeKeyboard = true
+                    }); 
             }
         }
     }
