@@ -98,7 +98,7 @@ namespace GoggleMapsPlaces.DataBase
             int rowsAffected = await cmd.ExecuteNonQueryAsync();
             await _connection.CloseAsync();
 
-            return rowsAffected > 0; // Якщо оновлено хоча б один запис, повертаємо true
+            return rowsAffected > 0; 
         }
     }
 }

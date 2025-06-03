@@ -22,6 +22,7 @@ namespace Google_Maps_Places_Bot
         private Dictionary<long, string> _waitingForType = new();
         private static Dictionary<string, PlaceInfo> _placesCache = new();
         private static HashSet<long> _waitingForRoute = new();
+        private Dictionary<long, List<string>> _userSearchTypes = new();
 
         public async Task Start()
         {
@@ -355,13 +356,19 @@ namespace Google_Maps_Places_Bot
             }
             if (callbackQuery.Data.StartsWith("search_"))
             {
-                var placeType = callbackQuery.Data.Substring(7); // Отримуємо тип місця
-                _waitingForType[chatId] = placeType; // Зберігаємо вибір
+                string placeType = callbackQuery.Data.Substring(7);
+
+                if (!_userSearchTypes.ContainsKey(chatId))
+                {
+                    _userSearchTypes[chatId] = new List<string>();
+                }
+
+                _userSearchTypes[chatId].Add(placeType);  
 
                 await botClient.SendTextMessageAsync(chatId, "📝 Введіть радіус пошуку в метрах (наприклад: 3000):");
-                _waitingForRadius[chatId] = true; // Чекаємо введення
-                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                _waitingForRadius[chatId] = true;
 
+                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
             }
             if (callbackQuery.Data.StartsWith("route_favorites_"))
             {
@@ -410,7 +417,7 @@ namespace Google_Maps_Places_Bot
             string mapsUrl = GenerateRouteUrl(placeId, origin);
 
             Console.WriteLine($"DEBUG: {mapsUrl}");
-
+            _placesCache.Clear();
             await botClient.SendTextMessageAsync(chatId, $"🗺 <b>Маршрут до місця</b>:\n🔗 <a href=\"{mapsUrl}\">Google Maps</a>", parseMode: ParseMode.Html);
             await MenuKeyboard(chatId);  // Повертаємо користувача в головне меню
         }
