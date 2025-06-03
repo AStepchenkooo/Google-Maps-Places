@@ -554,7 +554,15 @@ namespace Google_Maps_Places_Bot
                 });
 
             await botClient.SendTextMessageAsync(chatId, placeText, replyMarkup: markup, parseMode: ParseMode.Html);
-            MenuKeyboard(chatId);
+            var mainMenu = new ReplyKeyboardMarkup(new[]
+{
+    new KeyboardButton[] { "🏠 Пошук місць поруч", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
+})
+            {
+                ResizeKeyboard = true
+            };
+            await botClient.SendTextMessageAsync(chatId, "📍 Ми знайшли цікаве місце для вас!  \r\nДивіться деталі або переходьте до наступного 🏃‍♂️  ", replyMarkup: mainMenu);
         }
         private async Task SendPlaceTypeSelection(long chatId)
         {
