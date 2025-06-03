@@ -475,7 +475,7 @@ namespace Google_Maps_Places_Bot
         {
             var mainMenu = new ReplyKeyboardMarkup(new[]
 {
-    new KeyboardButton[] { "🏠 Головне меню", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "🏠 Пошук місць поруч", "⭐ Вподобані місця" },
     new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
 })
             {
@@ -488,7 +488,7 @@ namespace Google_Maps_Places_Bot
         {
             var mainMenu = new ReplyKeyboardMarkup(new[]
 {
-    new KeyboardButton[] { "🏠 Головне меню", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "🏠 Пошук місць поруч", "⭐ Вподобані місця" },
     new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
 })
             {
@@ -502,6 +502,7 @@ namespace Google_Maps_Places_Bot
             if (!_locationCache.ContainsKey(chatId))
             {
                 Console.WriteLine($"❌ Помилка: Локація для {chatId} не оновлена!");
+                MenuKeyboard(chatId);
                 return;
             }
 
@@ -535,6 +536,7 @@ namespace Google_Maps_Places_Bot
             if (recommendations == null || recommendations.Count == 0)
             {
                 await botClient.SendTextMessageAsync(chatId, "❌ Нічого не знайдено.");
+                MenuKeyboard(chatId);
                 return;
             }
 
@@ -552,6 +554,7 @@ namespace Google_Maps_Places_Bot
                 });
 
             await botClient.SendTextMessageAsync(chatId, placeText, replyMarkup: markup, parseMode: ParseMode.Html);
+            MenuKeyboard(chatId);
         }
         private async Task SendPlaceTypeSelection(long chatId)
         {
@@ -578,7 +581,7 @@ namespace Google_Maps_Places_Bot
 
                 var menu = new ReplyKeyboardMarkup(new[]
 {
-    new KeyboardButton[] { "🏠 Головне меню", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "🏠 Пошук місць поруч", "⭐ Вподобані місця" },
     new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
 })
                 {
@@ -648,7 +651,7 @@ namespace Google_Maps_Places_Bot
                     "❌ Сталася помилка при отриманні списку улюблених місць",
                     replyMarkup: new ReplyKeyboardMarkup(new[]
 {
-    new KeyboardButton[] { "🏠 Головне меню", "⭐ Вподобані місця" },
+    new KeyboardButton[] { "🏠 Пошук місць поруч", "⭐ Вподобані місця" },
     new KeyboardButton[] { "📍 Отримати рекомендації" } // Додаємо нову кнопку
 })
                     {
