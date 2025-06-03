@@ -357,7 +357,7 @@ namespace Google_Maps_Places_Bot
             if (callbackQuery.Data.StartsWith("search_"))
             {
                 string placeType = callbackQuery.Data.Substring(7);
-
+                _waitingForType.Add(chatId, placeType);
                 if (!_userSearchTypes.ContainsKey(chatId))
                 {
                     _userSearchTypes[chatId] = new List<string>();
@@ -488,6 +488,7 @@ namespace Google_Maps_Places_Bot
         }
         private async Task SendPlaceTypeSelection(long chatId)
         {
+            
             var markup = new InlineKeyboardMarkup(new[]
             {
         new [] { InlineKeyboardButton.WithCallbackData("☕ Кафе", "search_cafe"), InlineKeyboardButton.WithCallbackData("💊 Аптека", "search_pharmacy") },
