@@ -4,6 +4,7 @@ using GoggleMapsPlaces.Models.NearbyPlaces;
 using Microsoft.AspNetCore.Mvc;
 using Goggle_Maps_Places.Models.NearbyPlaces;
 using GoggleMapsPlaces.Models.PlaceInfo;
+using Newtonsoft.Json;
 namespace Goggle_Maps_Places.Controllers
 {
     [ApiController]
@@ -34,9 +35,10 @@ namespace Goggle_Maps_Places.Controllers
             return result.Select(f => new FavouritePlaceModel
             {
                 Name = f.Name,
-                PlaceID = f.PlaceId,
+                PlaceID = f.PlaceID,
                 Comment = f.Comment,
-                ChatID = ChatID
+                ChatID = ChatID,
+                PlaceTypes = f.PlaceTypes ?? new List<string>()
             }).ToList();
         }
 
@@ -45,7 +47,7 @@ namespace Goggle_Maps_Places.Controllers
         public async Task FavouriteAddAsync([FromBody] FavouritePlaceModel model)
         {
             FavouriteDB db = new FavouriteDB();
-            await db.InsertFavouritePlaceAsync(model.Name, model.PlaceID, model.Comment, model.ChatID);
+            await db.InsertFavouritePlaceAsync(model.Name, model.PlaceID, model.Comment, model.ChatID, model.PlaceTypes);
         }
         [HttpGet]
         [ActionName("PlaceInfo")]

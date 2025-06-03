@@ -34,7 +34,7 @@ namespace Google_Maps_Places_Bot
             Console.WriteLine(json);
             return JsonConvert.DeserializeObject<NearbyPlaces>(json);
         }
-        public async Task AddToFavouritesAsync(string name, string placeId, string comment, string chatId)
+        public async Task AddToFavouritesAsync(string name, string placeId, string comment, string chatId, List<string> placeTypes)
         {
             var client = new HttpClient();
             var apiUrl = $"{_baseUrl}/api/NearbyPlaces/AddFavouritePlace";
@@ -44,7 +44,8 @@ namespace Google_Maps_Places_Bot
                 Name = name,
                 PlaceID = placeId,
                 Comment = comment,
-                ChatID = chatId
+                ChatID = chatId,
+                PlaceTypes = placeTypes 
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
@@ -63,7 +64,7 @@ namespace Google_Maps_Places_Bot
                 Console.WriteLine("JSON отриманий від API:");
                 Console.WriteLine(json); // Логування JSON-відповіді
 
-                var result = JsonConvert.DeserializeObject<List<FavouritePlaceModel>>(json);
+                var result = JsonConvert.DeserializeObject<List<FavouritePlaceModel>>(json) ?? new List<FavouritePlaceModel>(); // **Перевірка на null**
 
                 Console.WriteLine("Перевіряємо список в АПІ бота...");
                 Console.WriteLine(string.Join("\n", result.Select(f => $"Name: {f.Name}, PlaceID: {f.PlaceID}")));
@@ -73,7 +74,7 @@ namespace Google_Maps_Places_Bot
             catch (Exception ex)
             {
                 Console.WriteLine($"Помилка отримання улюблених: {ex}");
-                return null;
+                return new List<FavouritePlaceModel>(); // **Повертаємо порожній список замість `null`**
             }
         }
         public async Task<string> GetPhotoUriAsync(string placeId)

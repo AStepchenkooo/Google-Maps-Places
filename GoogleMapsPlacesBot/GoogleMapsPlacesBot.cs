@@ -160,7 +160,7 @@ namespace Google_Maps_Places_Bot
                 string comment = message.Text;
 
                 var addToFavouriteAsync = new NearbyPlacesApiClient();
-                await addToFavouriteAsync.AddToFavouritesAsync(savedPlace.name, savedPlace.place_id, comment, message.Chat.Id.ToString());
+                await addToFavouriteAsync.AddToFavouritesAsync(savedPlace.name, savedPlace.place_id, comment, message.Chat.Id.ToString(), savedPlace.types.ToList());
                 await botClient.SendTextMessageAsync(message.Chat.Id, "✅ Додано в улюблені з коментарем");
 
                 _waitingForComment.Remove(message.Chat.Id);
@@ -317,7 +317,7 @@ namespace Google_Maps_Places_Bot
                 if (_waitingForComment.TryGetValue(chatId, out var place))
                 {
                     var addToFavouriteAsync = new NearbyPlacesApiClient();
-                    await addToFavouriteAsync.AddToFavouritesAsync(place.name, place.place_id, "—", chatId.ToString());
+                    await addToFavouriteAsync.AddToFavouritesAsync(place.name, place.place_id, "—", chatId.ToString(), place.types.ToList());
                     await botClient.SendTextMessageAsync(chatId, "✅ Додано в улюблені без коментаря");
                     _waitingForComment.Remove(chatId);
                 }

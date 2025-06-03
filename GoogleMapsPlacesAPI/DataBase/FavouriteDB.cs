@@ -1,6 +1,8 @@
 ﻿using Npgsql;
 using System.Data;
 using System.Xml.Linq;
+using Newtonsoft.Json;
+using Goggle_Maps_Places.Models.NearbyPlaces;
 
 namespace GoggleMapsPlaces.DataBase
 {
@@ -8,26 +10,29 @@ namespace GoggleMapsPlaces.DataBase
     {
         NpgsqlConnection _connection = new NpgsqlConnection(Constants.Connect);
 
-        public async Task InsertFavouritePlaceAsync(string name, string placeID, string comment, string chatID)
+        public async Task InsertFavouritePlaceAsync(string name, string placeID, string comment, string chatID, List<string> placeTypes)
         {
-            var sql = "INSERT INTO public.\"favouriteplaces\"(\"name\", \"placeid\", \"comment\", \"chatid\") " +
-                      "VALUES (@Name, @PlaceID, @Comment, @ChatID)";
+            var placeTypesJson = JsonConvert.SerializeObject(placeTypes); // **Серіалізуємо масив у JSON**
+
+            var sql = "INSERT INTO public.\"favouriteplaces\"(\"name\", \"placeid\", \"comment\", \"chatid\", \"placeType\") " +
+                      "VALUES (@Name, @PlaceID, @Comment, @ChatID, @PlaceType)";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
             cmd.Parameters.AddWithValue("Name", name);
             cmd.Parameters.AddWithValue("PlaceID", placeID);
             cmd.Parameters.AddWithValue("Comment", comment);
             cmd.Parameters.AddWithValue("ChatID", chatID);
+            cmd.Parameters.AddWithValue("PlaceType", placeTypesJson);  // **Оновлено для JSONB**
 
             if (_connection.State != ConnectionState.Open)
                 await _connection.OpenAsync();
             await cmd.ExecuteNonQueryAsync();
             await _connection.CloseAsync();
         }
-        public async Task<List<(string Name, string Comment, string PlaceId)>> GetFavouritePlacesAsync(string chatID)
+        public async Task<List<FavouritePlaceModel>> GetFavouritePlacesAsync(string chatID)
         {
-            var places = new List<(string Name, string Comment, string PlaceId)>();
-            var sql = "SELECT \"name\", \"comment\", \"placeid\" FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id";
+            var places = new List<FavouritePlaceModel>();
+            var sql = "SELECT \"name\", \"comment\", \"placeid\", \"placeType\" FROM public.\"favouriteplaces\" WHERE \"chatid\" = @chat_id";
 
             await using var cmd = new NpgsqlCommand(sql, _connection);
 
@@ -40,8 +45,18 @@ namespace GoggleMapsPlaces.DataBase
             while (await reader.ReadAsync())
             {
                 var placeId = reader["placeid"].ToString();
-                Console.WriteLine($"Отримано PlaceId з БД: {placeId}"); // Лог для перевірки
-                places.Add((reader["name"].ToString(), reader["comment"].ToString(), placeId));
+                var placeTypeJson = reader["placeType"].ToString();
+                var placeTypes = JsonConvert.DeserializeObject<List<string>>(placeTypeJson) ?? new List<string>();
+
+                Console.WriteLine($"Отримано PlaceId: {placeId}, Типи місця: {string.Join(", ", placeTypes)}");
+
+                places.Add(new FavouritePlaceModel
+                {
+                    Name = reader["name"].ToString(),
+                    Comment = reader["comment"].ToString(),
+                    PlaceID = placeId,
+                    PlaceTypes = placeTypes
+                });
             }
 
             await _connection.CloseAsync();
