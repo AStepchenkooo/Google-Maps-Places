@@ -5,6 +5,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Goggle_Maps_Places.Models.NearbyPlaces;
 
 namespace Google_Maps_Places_Bot
 {
@@ -23,6 +24,7 @@ namespace Google_Maps_Places_Bot
         private static Dictionary<string, PlaceInfo> _placesCache = new();
         private static HashSet<long> _waitingForRoute = new();
         private Dictionary<long, List<string>> _userSearchTypes = new();
+        private static HashSet<long> _pendingRecommendationsRequests = new();
 
         public async Task Start()
         {
@@ -73,7 +75,9 @@ namespace Google_Maps_Places_Bot
             }
             else if (message.Text == "📍 Отримати рекомендації")  
             {
-                await GetPersonalizedRecommendations(message.Chat.Id);
+                _pendingRecommendationsRequests.Add(message.Chat.Id);
+                RequestLocation(message);
+                return;
             }
 
             if (message.Type == MessageType.Location)
@@ -83,7 +87,13 @@ namespace Google_Maps_Places_Bot
 
                 _locationCache[message.Chat.Id] = (lat, lon);  // Перезаписуємо локацію
 
-                if (_waitingForRoute.Contains(message.Chat.Id))
+                if (_pendingRecommendationsRequests.Contains(message.Chat.Id))
+                {
+                    // виклик пошуку рекомендацій з уже точно оновленою локацією, перевірку можна уникнути
+                    _pendingRecommendationsRequests.Remove(message.Chat.Id);
+                    return;
+                }
+                else if (_waitingForRoute.Contains(message.Chat.Id))
                 {
                     _waitingForRoute.Remove(message.Chat.Id);
                     await GenerateRouteAfterLocation(message.Chat.Id);
@@ -487,28 +497,23 @@ namespace Google_Maps_Places_Bot
             await botClient.SendTextMessageAsync(chatID, "Виберіть функцію", replyMarkup: mainMenu);
             return;
         }
-        public async Task<List<Result>> GetPersonalizedRecommendations(long chatId)
+        public async Task GenerateRecommendationsAfterLocation(long chatId)
         {
-            await RequestLocation(chatId);            
+            if (!_locationCache.ContainsKey(chatId))
+            {
+                Console.WriteLine($"❌ Помилка: Локація для {chatId} не оновлена!");
+                return;
+            }
+
             double latitude = _locationCache[chatId].lat;
             double longitude = _locationCache[chatId].lon;
 
-
             var apiClient = new NearbyPlacesApiClient();
-            
-            var favoritePlaces = await apiClient.GetFavouritesAsync(chatId.ToString());
+            var favoritePlaces = await apiClient.GetFavouritesAsync(chatId.ToString()) ?? new List<FavouritePlaceModel>();
 
-            List<string> preferredTypes = new();
-
-            foreach (var place in favoritePlaces)
-            {
-                var filteredTypes = place.PlaceTypes
-                                         .Where(t => t != "point_of_interest" && t != "establishment")
-                                         .ToList();
-                preferredTypes.AddRange(filteredTypes);
-            }
-
-            var popularTypes = preferredTypes
+            var popularTypes = favoritePlaces
+                                .SelectMany(place => place.PlaceTypes)
+                                .Where(t => t != "point_of_interest" && t != "establishment")
                                 .GroupBy(x => x)
                                 .OrderByDescending(g => g.Count())
                                 .Take(3)
@@ -519,11 +524,11 @@ namespace Google_Maps_Places_Bot
 
             foreach (var type in popularTypes)
             {
-                var searchResults = await apiClient.GetNearbyPlacesAsync(latitude,longitude, 1500, "uk" , type);
-                recommendations.AddRange(searchResults.results.Take(2)); 
+                var searchResults = await apiClient.GetNearbyPlacesAsync(latitude, longitude, 1500, "uk", type);
+                recommendations.AddRange(searchResults.results.Take(2));  // **Беремо 2 місця для кожного типу**
             }
 
-            return recommendations;
+            await SendRecommendations(chatId, recommendations);
         }
         public async Task SendRecommendations(long chatId, List<Result> recommendations)
         {
